@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,7 +34,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CheckboxDefaults.colors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,20 +44,22 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.friendevs.linkgo.R
 import com.friendevs.linkgo.navigation.Screens
-import com.friendevs.linkgo.ui.theme.Purple40
-import com.friendevs.linkgo.ui.theme.Purple80
+import coil3.compose.AsyncImage
+import kotlin.collections.emptyList
 
 @Composable
 @ExperimentalMaterial3Api
@@ -76,6 +81,7 @@ fun ProfileScreen(navController: NavHostController) {
             item(){ ProfileHeader() }
             item() {ProfileEditRow()}
             item() { StatsRow() }
+            item() {MomentsGrid()}
 
         }
     }
@@ -125,11 +131,11 @@ fun ProfileHeader() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
         ProfileAvatar()
-        Text("Santiago Rodriguez", style = MaterialTheme.typography.headlineSmall,
+        Text("Nicolas", style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold, fontSize = 30.sp)
 
         Text(
-            "@arivers_snaps",
+            "@ndgc",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary, fontSize = 18.sp
         )
@@ -238,7 +244,7 @@ fun ProfileAvatar() {
     ) {
 
         Image(
-            painter = painterResource(R.drawable.img), // tu imagen
+            painter = painterResource(R.drawable.nico1), // tu imagen
             contentDescription = null,
             modifier = Modifier
                 .size(120.dp)
@@ -263,6 +269,52 @@ fun ProfileAvatar() {
                 contentDescription = "Edit",
                 tint = Color.White,
                 modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun MomentsGrid() {
+    Row(
+        Modifier.fillMaxWidth().padding(13.dp),
+        horizontalArrangement = Arrangement.Start,
+
+    ){
+
+        Text("Mis Momentos", style = MaterialTheme.typography.titleMedium)
+
+    }
+
+    val context = LocalContext.current
+
+    val imagePaths = remember {
+        val files = context.assets.list("selfpics")
+
+        if (files != null) {
+            files.map { "selfpics/$it" }
+        }else{
+            emptyList()
+        }
+
+
+    }
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = Modifier.height(300.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = PaddingValues(4.dp)
+    ) {
+        items(imagePaths) { path ->
+            AsyncImage(
+                model = "file:///android_asset/$path",
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
             )
         }
     }

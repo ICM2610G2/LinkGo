@@ -34,6 +34,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,7 +58,7 @@ import com.friendevs.linkgo.navigation.Screens
 @Composable
 fun FeedScreen(navController: NavController) {
     Scaffold(
-        topBar = { topBarFeed() },
+        topBar = { TopBarFeed() },
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
@@ -135,7 +139,7 @@ fun FeedScreen(navController: NavController) {
                 )
             }
 
-            // Lista de Posts
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -150,7 +154,7 @@ fun FeedScreen(navController: NavController) {
                         )
                     ) {
                         Column(modifier = Modifier.fillMaxWidth()) {
-                            // Cabecera del Post (Avatar y Nombre)
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -165,6 +169,7 @@ fun FeedScreen(navController: NavController) {
                                         .size(45.dp)
                                         .clip(CircleShape)
                                 )
+
 
                                 Column(
                                     modifier = Modifier
@@ -184,7 +189,7 @@ fun FeedScreen(navController: NavController) {
                                 }
                             }
 
-                            // Imagen del Post
+
                             Image(
                                 painter = painterResource(id = R.drawable.foto_feed),
                                 contentDescription = "Imagen del post",
@@ -193,6 +198,7 @@ fun FeedScreen(navController: NavController) {
                                     .fillMaxWidth()
                                     .height(300.dp) 
                             )
+                            PostActions()
                         }
                     }
                 }
@@ -203,7 +209,7 @@ fun FeedScreen(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun topBarFeed() {
+fun TopBarFeed() {
     TopAppBar(
         title = {
             Text(
@@ -256,8 +262,38 @@ fun topBarFeed() {
     )
 }
 
+@Composable
+fun PostActions() {
+
+    var liked by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        IconButton(
+            onClick = { liked = !liked }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = "Like",
+                tint = if (liked) Color.Red else Color.Gray
+            )
+        }
+
+        Text(
+            text = if (liked) "Te gusta" else "Me gusta",
+            fontSize = 14.sp
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
-fun feedPreview() {
+fun FeedPreview() {
     FeedScreen(navController = NavController(LocalContext.current))
 }
