@@ -22,7 +22,10 @@ import com.friendevs.linkgo.navigation.Screens
 fun MapScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
                 NavigationBarItem(
                     selected = true,
                     onClick = {navController.navigate(Screens.Map.name) },
