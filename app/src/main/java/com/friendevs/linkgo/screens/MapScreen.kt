@@ -158,7 +158,7 @@ fun MapScreen(navController: NavController) {
                 }
 
                 Button(
-                    onClick = { navController.navigate(Screens.Map.name) },
+                    onClick = { navController.navigate(Screens.MeetUp.name) },
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(start = 20.dp, bottom = 35.dp),

@@ -39,9 +39,7 @@ fun HotspotCard(hotspot: Hotspot) {
             AsyncImage(
                 model = hotspot.url,
                 contentDescription = hotspot.name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
+                modifier = Modifier.fillMaxWidth().height(160.dp)
             )
         }
     }

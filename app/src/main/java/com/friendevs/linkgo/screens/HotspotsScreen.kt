@@ -36,7 +36,7 @@ fun HotspotsScreen(navController: NavController) {
         },
         bottomBar = {
             NavigationBar(
-                containerColor = Color(0xFF140F23) // 👈 mismo color que el fondo
+                containerColor = Color(0xFF140F23)
             ) {
 
                 NavigationBarItem(
@@ -78,10 +78,7 @@ fun HotspotsScreen(navController: NavController) {
     ) { paddingValues ->
 
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 8.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 8.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 

@@ -11,6 +11,7 @@ import com.friendevs.linkgo.screens.ChatScreen
 import com.friendevs.linkgo.screens.FeedScreen
 import com.friendevs.linkgo.screens.HotspotsScreen
 import com.friendevs.linkgo.screens.MapScreen
+import com.friendevs.linkgo.screens.MeetUpsScreen
 import com.friendevs.linkgo.screens.ProfileScreen
 
 
@@ -21,7 +22,8 @@ enum class Screens {
     Chat,
     ChatDetail,
     Hotspots,
-    Profile
+    Profile,
+    MeetUp
 
 }
 
@@ -48,6 +50,8 @@ fun Navigation() {
         composable(route = Screens.Profile.name) {
             ProfileScreen(navController)
         }
-
+        composable(route = Screens.MeetUp.name) {
+            MeetUpsScreen(navController)
+        }
     }
 }

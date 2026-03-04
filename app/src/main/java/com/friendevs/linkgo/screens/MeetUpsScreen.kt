@@ -34,24 +34,11 @@ fun MeetUpsScreen(navController: NavController) {
                     containerColor = Color(0xFF140F23)
                 )
             )
-        }
-    ) { paddingValues ->
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-
-            items(meetUpContacts) { contact ->
-                MeetUpCard(contact = contact)
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-
+        },
+        bottomBar = {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
                 Button(
                     onClick = { },
                     modifier = Modifier.fillMaxWidth(),
@@ -59,9 +46,21 @@ fun MeetUpsScreen(navController: NavController) {
                         containerColor = Color(0xFF8A5CFF)
                     )
                 ) {
-                    Text("Solicitar Meet Up", color = Color.White)
+                    Text("Meet Up", color = Color.White)
                 }
             }
+        }
+    ) { paddingValues ->
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+
+            items(meetUpContacts) { contact ->
+                MeetUpCard(contact = contact)
+            }
+
         }
     }
 }

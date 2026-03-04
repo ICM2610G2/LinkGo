@@ -27,16 +27,12 @@ fun MeetUpCard(contact: MeetUpContact) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF2A214D)),
+                modifier = Modifier.size(50.dp).clip(CircleShape).background(Color(0xFF2A214D)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -68,7 +64,7 @@ fun MeetUpCard(contact: MeetUpContact) {
             Icon(
                 Icons.Default.Check,
                 contentDescription = null,
-                tint = if (contact.isSelected) Color(0xFF8A5CFF) else Color.DarkGray
+                tint = Color.DarkGray
             )
         }
     }
