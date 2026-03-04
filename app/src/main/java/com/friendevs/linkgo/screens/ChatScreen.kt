@@ -105,15 +105,57 @@ fun ChatScreen(navController: NavController) {
 
         //------------------CONTENIDO PRINCIPAL------------------
 
+        // fitros
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+
+            Row(
+                modifier = Modifier
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+
+                Text(
+                    text = "All",
+                    color = Color.White,
+                    modifier = Modifier
+                        .background(color = MaterialTheme.colorScheme.primary, CircleShape)
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .clickable(onClick = {})
+                )
+
+
+                Text(
+                    text = "Chats",
+                    color = Color.White,
+                    modifier = Modifier
+                        .background(color = MaterialTheme.colorScheme.surface, CircleShape)
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .clickable(onClick = {})
+                )
+
+                Text(
+                    text = "Circulos",
+                    color = Color.White,
+                    modifier = Modifier
+                        .background(color = MaterialTheme.colorScheme.surface, CircleShape)
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .clickable(onClick = {})
+                )
+            }
+            // CHATS
         LazyColumn(
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(Contacts) { contact ->
                 ElevatedCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(10.dp)
+                        .padding(horizontal = 10.dp)
                         .height(80.dp)
                         .clickable(onClick = { navController.navigate(Screens.ChatDetail.name) }),
                     colors = CardDefaults.elevatedCardColors(
@@ -137,7 +179,8 @@ fun ChatScreen(navController: NavController) {
                                 painter = painterResource(id = R.drawable.img),
                                 contentDescription = "Foto",
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(50.dp)
+                                modifier = Modifier
+                                    .size(50.dp)
                                     .clip(CircleShape)
                             )
                         }
@@ -176,7 +219,7 @@ fun ChatScreen(navController: NavController) {
         }
 
     }
-
+        }
 
 }
 
@@ -252,7 +295,7 @@ fun floatingButtonChat() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showSystemUi = true)
 @Composable
 fun chatPreview() {
     ChatScreen(navController = NavController(LocalContext.current))
