@@ -13,5 +13,6 @@ val Contacts = listOf(
     Contact("Valentina Gómez", "Hace 1 h", "Encontré un escape room buenísimo..."),
     Contact("Diego Fernando", "Hace 2 h", "Recuerda que el nuevo horario..."),
     Contact("Camila Herrera", "Ayer", "Ya dejé listos los flyers de Pro..."),
-    Contact("Javier Silva", "Ayer", "¿Vamos a almorzar mañana? Cono...")
+    Contact("Javier Silva", "Ayer", "¿Vamos a almorzar mañana? Cono..."),
+    Contact("Camila Herrera", "Ayer", "Ya dejé listos los flyers de Pro...")
 )
