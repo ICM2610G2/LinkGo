@@ -60,43 +60,6 @@ import com.friendevs.linkgo.navigation.Screens
 fun ChatScreen(navController: NavController) {
     Scaffold(
         topBar = { topBarChat() },
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            ) {
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { navController.navigate(Screens.Map.name) },
-                    icon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
-                    label = { Text("MAP") }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { navController.navigate(Screens.Feed.name) },
-                    icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
-                    label = { Text("FEED") }
-                )
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { navController.navigate(Screens.Chat.name) },
-                    icon = { Icon(Icons.Default.Send, contentDescription = null) },
-                    label = { Text("CHAT") }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { navController.navigate(Screens.Hotspots.name) },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { Text("HOTSPOTS") }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { navController.navigate(Screens.Profile.name) },
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    label = { Text("PROFILE") }
-                )
-            }
-        },
         floatingActionButton = {
             floatingButtonChat()
         }

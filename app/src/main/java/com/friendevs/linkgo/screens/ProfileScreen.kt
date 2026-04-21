@@ -43,6 +43,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -65,7 +66,6 @@ import kotlin.collections.emptyList
 @ExperimentalMaterial3Api
 fun ProfileScreen(navController: NavHostController) {
     Scaffold(
-        bottomBar = { BottomNavigationBar(navController) },
         topBar = {UserTopAppBar()}
     ) { paddingValues ->
 
@@ -222,16 +222,61 @@ fun BottomNavigationBar(navController: NavHostController) {
 
 @Composable
 @ExperimentalMaterial3Api
-fun UserTopAppBar(){
+fun UserTopAppBar() {
     TopAppBar(
-        title = {Text("Perfil", fontSize = 28.sp,
-            style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                },
-        actions = {
-            IconButton(onClick = {}) {
-                Icon(Icons.Default.Settings, "Profile Settings")
+        title = {
+            Text(
+                text = "Mensajes",
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+
+        /*
+        navigationIcon = {
+
+            IconButton(
+                onClick = { },
+                modifier = Modifier
+                    .padding(horizontal = 12.dp)
+                    .size(40.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Menu",
+                    modifier = Modifier.size(20.dp)
+                )
             }
-        })
+        },*/
+        //Icono de settings
+        actions = {
+            IconButton(
+                onClick = { },
+                modifier = Modifier
+                    .padding(end = 12.dp)
+                    .size(40.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Buscar",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        },
+
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background
+        )
+    )
 }
 
 
