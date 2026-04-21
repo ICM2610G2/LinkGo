@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,12 +25,12 @@ import com.friendevs.linkgo.navigation.Screens
 fun HotspotsScreen(navController: NavController) {
 
     Scaffold(
-        containerColor = Color(0xFF140F23),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = { topBarHostpots() }
     ) { paddingValues ->
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 8.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding()).padding(horizontal = 8.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
@@ -87,7 +88,7 @@ fun topBarHostpots() {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Buscar",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp)
                 )
             }

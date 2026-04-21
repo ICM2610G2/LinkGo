@@ -72,7 +72,7 @@ fun ProfileScreen(navController: NavHostController) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(25.dp)
@@ -174,51 +174,12 @@ fun StatItem(number: String, label: String) {
                     number, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary,
                     fontSize = 25.sp
                 )
-                Text(label, color = Color.Gray)
+                Text(label, color = MaterialTheme.colorScheme.secondary)
             }
         }
 
 }
 
-
-@Composable
-fun BottomNavigationBar(navController: NavHostController) {
-        NavigationBar(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface) {
-
-            NavigationBarItem(
-                selected = false,
-                onClick = { navController.navigate(Screens.Map.name) },
-                icon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
-                label = { Text("MAP") }
-            )
-            NavigationBarItem(
-                selected = false,
-                onClick = { navController.navigate(Screens.Feed.name) },
-                icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
-                label = { Text("FEED") }
-            )
-            NavigationBarItem(
-                selected = false,
-                onClick = { navController.navigate(Screens.Chat.name) },
-                icon = { Icon(Icons.Default.Send, contentDescription = null) },
-                label = { Text("CHAT") }
-            )
-            NavigationBarItem(
-                selected = false,
-                onClick = { navController.navigate(Screens.Hotspots.name) },
-                icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                label = { Text("HOTSPOTS") }
-            )
-            NavigationBarItem(
-                selected = true,
-                onClick = { navController.navigate(Screens.Profile.name) },
-                icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                label = { Text("PROFILE") }
-            )
-        }
-}
 
 @Composable
 @ExperimentalMaterial3Api
@@ -267,7 +228,7 @@ fun UserTopAppBar() {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "Buscar",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -306,13 +267,13 @@ fun ProfileAvatar() {
                 .size(36.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
-                .border(2.dp, Color.White, CircleShape),
+                .border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Edit,
                 contentDescription = "Edit",
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(18.dp)
             )
         }

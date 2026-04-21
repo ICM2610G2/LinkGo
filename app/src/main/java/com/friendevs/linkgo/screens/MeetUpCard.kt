@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +22,7 @@ fun MeetUpCard(contact: MeetUpContact) {
 
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E1639)
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
@@ -32,13 +33,13 @@ fun MeetUpCard(contact: MeetUpContact) {
         ) {
 
             Box(
-                modifier = Modifier.size(50.dp).clip(CircleShape).background(Color(0xFF2A214D)),
+                modifier = Modifier.size(50.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.Person,
                     contentDescription = null,
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -48,7 +49,7 @@ fun MeetUpCard(contact: MeetUpContact) {
 
                 Text(
                     text = contact.fullName,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -56,7 +57,7 @@ fun MeetUpCard(contact: MeetUpContact) {
 
                 Text(
                     text = "${contact.distance} • ${contact.location}",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.secondary,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -64,7 +65,7 @@ fun MeetUpCard(contact: MeetUpContact) {
             Icon(
                 Icons.Default.Check,
                 contentDescription = null,
-                tint = Color.DarkGray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

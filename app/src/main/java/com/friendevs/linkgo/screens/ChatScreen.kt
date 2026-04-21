@@ -71,7 +71,7 @@ fun ChatScreen(navController: NavController) {
         // fitros
         Column(
             modifier = Modifier
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
                 .fillMaxSize()
         ) {
 
@@ -83,7 +83,7 @@ fun ChatScreen(navController: NavController) {
 
                 Text(
                     text = "All",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .background(color = MaterialTheme.colorScheme.primary, CircleShape)
                         .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -93,7 +93,7 @@ fun ChatScreen(navController: NavController) {
 
                 Text(
                     text = "Chats",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .background(color = MaterialTheme.colorScheme.surface, CircleShape)
                         .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -102,7 +102,7 @@ fun ChatScreen(navController: NavController) {
 
                 Text(
                     text = "Circulos",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .background(color = MaterialTheme.colorScheme.surface, CircleShape)
                         .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -233,7 +233,7 @@ fun topBarChat() {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Buscar",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp)
                 )
             }

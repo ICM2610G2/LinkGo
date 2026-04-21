@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,21 +18,21 @@ import com.friendevs.linkgo.model.meetUpContacts
 fun MeetUpsScreen(navController: NavController) {
 
     Scaffold(
-        containerColor = Color(0xFF140F23),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text("Meet up", color = Color.White)
+                        Text("Meet up", color = MaterialTheme.colorScheme.onSurface)
                         Text(
                             "Encuentra el lugar ideal",
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF140F23)
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
@@ -43,10 +44,10 @@ fun MeetUpsScreen(navController: NavController) {
                     onClick = { },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8A5CFF)
+                        containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text("Meet Up", color = Color.White)
+                    Text("Meet Up", color = MaterialTheme.colorScheme.onSurface)
                 }
             }
         }

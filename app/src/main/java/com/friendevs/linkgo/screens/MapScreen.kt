@@ -1,6 +1,5 @@
 package com.friendevs.linkgo.screens
 
-import android.R.color.white
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +22,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.BottomStart
@@ -49,8 +49,7 @@ fun MapScreen(navController: NavController) {
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = paddingValues.calculateBottomPadding()),
+                .fillMaxSize(),
             // Esto hace que pueda poner la imagen hasta arriba pero el padding de abajo si lo usa
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -76,7 +75,7 @@ fun MapScreen(navController: NavController) {
 
                     Text(
                         text = "All",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.primary, CircleShape)
@@ -89,7 +88,7 @@ fun MapScreen(navController: NavController) {
                     Text(
                         text = "Chats",
                         textAlign = TextAlign.Center,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.surface, CircleShape)
                             .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -99,7 +98,7 @@ fun MapScreen(navController: NavController) {
 
                     Text(
                         text = "Circulos",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .background(color = MaterialTheme.colorScheme.surface, CircleShape)
@@ -155,7 +154,7 @@ fun MapScreen(navController: NavController) {
                         .offset(x = -65.dp, y = -185.dp)
                         .size(60.dp) // tamaño del círculo
                         .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, Color(0xFF907CFC), CircleShape) //bordecito morado
+                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
                 )
 
                 Image(
@@ -166,7 +165,7 @@ fun MapScreen(navController: NavController) {
                         .offset(x = 120.dp, y = 50.dp)
                         .size(60.dp) // tamaño del círculo
                         .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, Color(0xFF907CFC), CircleShape) //bordecito morado
+                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
                 )
 
                 Image(
@@ -177,7 +176,7 @@ fun MapScreen(navController: NavController) {
                         .offset(x = 30.dp, y = 0.dp)
                         .size(60.dp) // tamaño del círculo
                         .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, Color(0xFF907CFC), CircleShape) //bordecito morado
+                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
                 )
 
                 Image(
@@ -188,7 +187,7 @@ fun MapScreen(navController: NavController) {
                         .offset(x = 40.dp, y = -130.dp)
                         .size(60.dp) // tamaño del círculo
                         .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, Color(0xFF907CFC), CircleShape) //bordecito morado
+                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
                 )
 
                 Image(
@@ -199,7 +198,7 @@ fun MapScreen(navController: NavController) {
                         .offset(x = -90.dp, y = 210.dp)
                         .size(60.dp) // tamaño del círculo
                         .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, Color(0xFF907CFC), CircleShape) //bordecito morado
+                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
                 )
 
             }

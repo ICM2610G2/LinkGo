@@ -1,6 +1,7 @@
 package com.friendevs.linkgo.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
@@ -63,11 +64,11 @@ fun Navigation() {
                 BottomNavBar(navController = navController, currentRoute = currentRoute)
             }
         }
-    ) { _ -> 
+    ) { innerPadding -> 
         NavHost(
             navController = navController,
             startDestination = Screens.Map.name,
-            modifier = Modifier
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             composable(route = Screens.Map.name) {
                 MapScreen(navController)

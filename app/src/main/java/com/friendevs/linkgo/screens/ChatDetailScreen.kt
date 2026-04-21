@@ -56,12 +56,11 @@ import coil.compose.AsyncImage
 
 @Composable
 fun ChatDetailScreen(navController: NavController) {
-    // Colores aproximados a tu mockup (morado/oscuro)
-    val bgTop = Color(0xFF0B0A14)
-    val bgBottom = Color(0xFF1A1233)
-    val bubbleMe = Color(0xFF6C4DFF)
-    val bubbleOther = Color(0xFF2A1F50)
-    val divider = Color.White.copy(alpha = 0.08f)
+    val bgTop = MaterialTheme.colorScheme.background
+    val bgBottom = MaterialTheme.colorScheme.surface
+    val bubbleMe = MaterialTheme.colorScheme.primary
+    val bubbleOther = MaterialTheme.colorScheme.surfaceVariant
+    val divider = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
 
     val messages = remember {
         mutableStateListOf(
@@ -206,7 +205,7 @@ private fun ChatDetailTopBar(
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -214,13 +213,13 @@ private fun ChatDetailTopBar(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF2B2246)),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Filled.Face,
                     contentDescription = "Avatar",
-                    tint = Color.White.copy(alpha = 0.85f)
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
                 )
 
                 // puntito verde online
@@ -230,8 +229,8 @@ private fun ChatDetailTopBar(
                         .padding(2.dp)
                         .size(10.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF38D46A))
-                        .border(2.dp, Color(0xFF0B0A14), CircleShape)
+                        .background(MaterialTheme.colorScheme.tertiary)
+                        .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
                 )
             }
 
@@ -240,7 +239,7 @@ private fun ChatDetailTopBar(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = name,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -248,7 +247,7 @@ private fun ChatDetailTopBar(
                 )
                 Text(
                     text = status,
-                    color = Color.White.copy(alpha = 0.65f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -258,7 +257,7 @@ private fun ChatDetailTopBar(
                 Icon(
                     imageVector = Icons.Filled.Call,
                     contentDescription = "Call",
-                    tint = Color(0xFF8B77FF)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -270,11 +269,11 @@ private fun ChatDetailTopBar(
 @Composable
 private fun DayChip(text: String) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Surface(color = Color.White.copy(alpha = 0.08f), shape = RoundedCornerShape(20.dp)) {
+        Surface(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), shape = RoundedCornerShape(20.dp)) {
             Text(
                 text = text,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                color = Color.White.copy(alpha = 0.75f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Medium
             )
@@ -308,7 +307,7 @@ private fun MessageBubble(
                 Text(
                     text = text,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -316,7 +315,7 @@ private fun MessageBubble(
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = time,
-                    color = Color.White.copy(alpha = 0.35f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -351,13 +350,13 @@ private fun ImageMessageBubble(
                         modifier = Modifier
                             .size(width = 240.dp, height = 150.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black.copy(alpha = 0.15f)),
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)),
                         contentScale = ContentScale.Crop
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
                         text = caption,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -366,7 +365,7 @@ private fun ImageMessageBubble(
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = time,
-                    color = Color.White.copy(alpha = 0.35f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -380,13 +379,13 @@ private fun MiniAvatar() {
         modifier = Modifier
             .size(28.dp)
             .clip(CircleShape)
-            .background(Color(0xFF2B2246)),
+            .background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.Face,
             contentDescription = "avatar",
-            tint = Color.White.copy(alpha = 0.8f),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
             modifier = Modifier.size(18.dp)
         )
     }
@@ -411,8 +410,8 @@ private fun ChatDetailInputBar(
             FilledIconButton(
                 onClick = { /* TODO: adjuntar */ },
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = Color.White.copy(alpha = 0.08f),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 )
             ) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
@@ -422,7 +421,7 @@ private fun ChatDetailInputBar(
 
             Surface(
                 modifier = Modifier.weight(1f),
-                color = Color.White.copy(alpha = 0.08f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                 shape = RoundedCornerShape(22.dp)
             ) {
                 Row(
@@ -438,7 +437,7 @@ private fun ChatDetailInputBar(
                         placeholder = {
                             Text(
                                 "Escribe un mensaje...",
-                                color = Color.White.copy(alpha = 0.45f)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                             )
                         },
                         colors = TextFieldDefaults.colors(
@@ -446,9 +445,9 @@ private fun ChatDetailInputBar(
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            cursorColor = Color.White,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            cursorColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         maxLines = 3
                     )
@@ -457,7 +456,7 @@ private fun ChatDetailInputBar(
                         Icon(
                             imageVector = Icons.Filled.Face,
                             contentDescription = "Emoji",
-                            tint = Color.White.copy(alpha = 0.7f)
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -468,8 +467,8 @@ private fun ChatDetailInputBar(
             FilledIconButton(
                 onClick = onSend,
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = Color(0xFF6C4DFF),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 )
             ) {
                 Icon(imageVector = Icons.Filled.Send, contentDescription = "Send")
