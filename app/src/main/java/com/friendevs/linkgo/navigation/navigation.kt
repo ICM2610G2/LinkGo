@@ -17,7 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -28,9 +28,13 @@ import com.friendevs.linkgo.screens.ChatDetailScreen
 import com.friendevs.linkgo.screens.ChatScreen
 import com.friendevs.linkgo.screens.FeedScreen
 import com.friendevs.linkgo.screens.HotspotsScreen
+import com.friendevs.linkgo.screens.LoginScreen
+import com.friendevs.linkgo.screens.LoginViewModel
 import com.friendevs.linkgo.screens.MapScreen
 import com.friendevs.linkgo.screens.MeetUpsScreen
 import com.friendevs.linkgo.screens.ProfileScreen
+import com.friendevs.linkgo.screens.RegisterScreen
+import com.friendevs.linkgo.screens.RegisterViewModel
 
 enum class Screens {
     Map,
@@ -39,13 +43,18 @@ enum class Screens {
     ChatDetail,
     Hotspots,
     Profile,
-    MeetUp
+    MeetUp,
+    login,
+    register
 }
 
 @Composable
 @ExperimentalMaterial3Api
 fun Navigation() {
     val navController = rememberNavController()
+
+    val loginViewModel: LoginViewModel = viewModel()
+    val registerViewModel: RegisterViewModel = viewModel()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -67,9 +76,15 @@ fun Navigation() {
     ) { innerPadding -> 
         NavHost(
             navController = navController,
-            startDestination = Screens.Map.name,
+            startDestination = Screens.login.name,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
+            composable(route = Screens.login.name) {
+                LoginScreen(navController, loginViewModel)
+            }
+            composable(route = Screens.register.name) {
+                RegisterScreen(navController, registerViewModel)
+            }
             composable(route = Screens.Map.name) {
                 MapScreen(navController)
             }
