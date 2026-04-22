@@ -82,6 +82,9 @@ fun LoginScreen(navController: NavHostController, model: LoginViewModel) {
                     auth.signInWithEmailAndPassword(user.email, user.password)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
+                                val prefs = context.getSharedPreferences("auth", 0)
+                                prefs.edit().putString("email", user.email).
+                                putString("password", user.password).apply()
                                 navController.navigate(Screens.Map.name) {
                                     popUpTo(Screens.login.name) { inclusive = true }
                                 }
@@ -99,9 +102,27 @@ fun LoginScreen(navController: NavHostController, model: LoginViewModel) {
             onClick = {
                 activity?.let {
                     showBiometricPrompt(it) {
-                        navController.navigate(Screens.Map.name) {
-                            popUpTo(Screens.login.name) { inclusive = true }
+
+                        val prefs = context.getSharedPreferences("auth", 0)
+                        val savedEmail = prefs.getString("email", null)
+                        val password = prefs.getString("password", null)
+
+                        if (savedEmail != null && password != null) {
+                            auth.signInWithEmailAndPassword(savedEmail, password)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        navController.navigate(Screens.Map.name) {
+                                            popUpTo(Screens.login.name) { inclusive = true }
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "Biometric login failed", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+
+                        } else {
+                            Toast.makeText(context, "No session found", Toast.LENGTH_SHORT).show()
                         }
+
                     }
                 }
             },

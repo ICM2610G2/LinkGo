@@ -20,9 +20,11 @@ class SensorViewModel(application: Application) : AndroidViewModel(application),
     var shakeDetected by mutableStateOf(false)
     var proximityNear by mutableStateOf(false)
 
-    private var lastAccel = 0f
-    private var currentAccel = 0f
+    private var accel = 0f
+    private var accelCurrent = SensorManager.GRAVITY_EARTH
+    private var accelLast = SensorManager.GRAVITY_EARTH
     private val SHAKE_THRESHOLD = 8f
+
 
     init {
         val sensors = listOf(
@@ -54,14 +56,17 @@ class SensorViewModel(application: Application) : AndroidViewModel(application),
                 val y = event.values[1]
                 val z = event.values[2]
 
-                lastAccel = currentAccel
-                currentAccel = sqrt(x * x + y * y + z * z)
-                val delta = currentAccel - lastAccel
+                accelLast = accelCurrent
+                accelCurrent = sqrt(x * x + y * y + z * z)
 
-                if (delta > SHAKE_THRESHOLD) {
+                val delta = accelCurrent - accelLast
+                accel = accel * 0.9f + delta
+
+                if (accel > 12f) {
                     shakeDetected = true
                 }
             }
+
         }
     }
 

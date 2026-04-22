@@ -26,6 +26,8 @@ import com.friendevs.linkgo.ui.feature.meetup.MeetUpsScreen
 import com.friendevs.linkgo.ui.feature.profile.ProfileScreen
 import com.friendevs.linkgo.ui.feature.auth.RegisterScreen
 import com.friendevs.linkgo.ui.feature.auth.RegisterViewModel
+import com.friendevs.linkgo.ui.feature.map.MapViewModel
+import kotlinx.coroutines.delay
 
 enum class Screens {
     Map, Feed, Chat, ChatDetail, Hotspots, Profile, MeetUp, login, register, AddHotspot
@@ -40,6 +42,7 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
 
     val loginViewModel: LoginViewModel = viewModel()
     val registerViewModel: RegisterViewModel = viewModel()
+    val mapViewModel : MapViewModel = viewModel()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -52,6 +55,7 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
     LaunchedEffect(sensorViewModel.shakeDetected) {
         if (sensorViewModel.shakeDetected) {
             showSafetySheet = true
+            delay(100)
             sensorViewModel.resetShake()
         }
     }
@@ -77,7 +81,7 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
                 composable(route = Screens.ChatDetail.name) { ChatDetailScreen(navController, sensorViewModel = sensorViewModel) }
                 composable(route = Screens.Hotspots.name) { HotspotsScreen(navController) }
                 composable(route = Screens.Profile.name) { ProfileScreen(navController) }
-                composable(route = Screens.MeetUp.name) { MeetUpsScreen(navController) }
+                composable(route = Screens.MeetUp.name) { MeetUpsScreen(navController, mapViewModel = mapViewModel) }
                 composable(route = Screens.AddHotspot.name) { AddHotspotScreen(navController) }
             }
 

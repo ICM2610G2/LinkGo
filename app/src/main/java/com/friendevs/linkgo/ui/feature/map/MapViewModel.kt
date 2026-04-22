@@ -23,7 +23,8 @@ data class MapState(
     val routeDistance: String = "",
     val routeEta: String = "",
     val isRouteLoading: Boolean = false,
-    val routeError: String? = null
+    val routeError: String? = null,
+    val pendingHotspot: Hotspot? = null
 )
 
 class MapViewModel : ViewModel() {
@@ -63,6 +64,12 @@ class MapViewModel : ViewModel() {
 
     fun onUserLocationUpdate(location: LatLng) {
         state = state.copy(currentUserLocation = location)
+
+        val pending = state.pendingHotspot
+        if (pending != null) {
+            calculateRouteToHotspot(pending)
+            state = state.copy(pendingHotspot = null)
+        }
     }
 
     fun calculateRouteToHotspot(hotspot: Hotspot) {
@@ -109,5 +116,20 @@ class MapViewModel : ViewModel() {
             isRouteLoading = false,
             routeError = null
         )
+    }
+
+    //Esta funcion es un placeholder para la implementacion de MeetUp con grupos
+
+    fun pickRandomHotspot() {
+        val hotspots = state.hotspots
+
+        if (hotspots.isEmpty()) {
+            state = state.copy(routeError = "No hay hotspots disponibles")
+            return
+        }
+
+        val randomHotspot = hotspots.random()
+
+        state = state.copy(pendingHotspot = randomHotspot)
     }
 }

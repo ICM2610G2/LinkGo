@@ -175,14 +175,7 @@ fun MapScreen(
                         .padding(horizontal = 20.dp, vertical = 8.dp)
                         .clickable { }
                 )
-                Text(
-                    text = "Chats",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.surface, CircleShape)
-                        .padding(horizontal = 20.dp, vertical = 8.dp)
-                        .clickable { }
-                )
+
                 Text(
                     text = "Círculos",
                     textAlign = TextAlign.Center,

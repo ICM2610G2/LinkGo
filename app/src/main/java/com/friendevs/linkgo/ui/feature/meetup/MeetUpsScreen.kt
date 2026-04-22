@@ -12,10 +12,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.friendevs.linkgo.ui.feature.meetup.MeetUpCard
 import com.friendevs.linkgo.domain.model.meetUpContacts
+import com.friendevs.linkgo.ui.feature.map.MapViewModel
+import com.friendevs.linkgo.ui.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MeetUpsScreen(navController: NavController) {
+fun MeetUpsScreen(navController: NavController, mapViewModel: MapViewModel) {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -41,7 +43,10 @@ fun MeetUpsScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Button(
-                    onClick = { },
+                    onClick = {
+                        mapViewModel.pickRandomHotspot()
+                        navController.navigate(Screens.Map.name)
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary

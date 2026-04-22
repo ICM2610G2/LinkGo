@@ -30,16 +30,15 @@ class MainActivity : FragmentActivity() { // Mantenemos tu FragmentActivity
         }
 
         setContent {
-            // Inyectamos el ViewModel de los sensores
             val sensorViewModel: SensorViewModel = viewModel()
 
-            // Usamos el tema con el sensor de luz
+
             LinkGoTheme(
                 sensorViewModel = sensorViewModel,
                 darkTheme = isSystemInDarkTheme(),
                 dynamicColor = false
             ) {
-                // Pasamos el sensorViewModel a la navegación (importante para el acelerómetro global)
+
                 Navigation(sensorViewModel = sensorViewModel)
             }
         }
