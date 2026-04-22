@@ -29,6 +29,7 @@ import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.auth.FirebaseAuth
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
 
@@ -52,7 +53,10 @@ fun MapScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.loadHotSpots()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            viewModel.loadHotSpots(userId)
+        }
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION

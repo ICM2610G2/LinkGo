@@ -22,6 +22,7 @@ import androidx.navigation.NavController
 import com.friendevs.linkgo.data.repository.FirebaseHotspotRepository
 import com.friendevs.linkgo.domain.model.Hotspot
 import com.friendevs.linkgo.ui.navigation.Screens
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,8 +31,13 @@ fun HotspotsScreen(navController: NavController) {
     var hotspots by remember { mutableStateOf<List<Hotspot>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        repository.getHotspots { list ->
-            hotspots = list
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            repository.getHotspotsByUser(userId) { list ->
+                hotspots = list
+            }
+        } else {
+            hotspots = emptyList()
         }
     }
 

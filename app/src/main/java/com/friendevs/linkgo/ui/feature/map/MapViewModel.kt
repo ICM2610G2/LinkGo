@@ -19,10 +19,10 @@ class MapViewModel : ViewModel() {
     var state by mutableStateOf(MapState())
         private set
 
-    fun loadHotSpots() {
+    fun loadHotSpots(userId: String) {
         val repo = FirebaseHotspotRepository()
 
-        repo.getHotspots { hotspots ->
+        repo.getHotspotsByUser(userId) { hotspots ->
             state = state.copy(hotspots = hotspots)
         }
     }

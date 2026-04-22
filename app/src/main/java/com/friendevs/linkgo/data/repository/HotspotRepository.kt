@@ -23,7 +23,6 @@ class FirebaseHotspotRepository {
 
         hotspotRef.setValue(hotspotMap)
 
-        // 🔥 relación con usuario
         db.child("users")
             .child(userId)
             .child("hotspots")
@@ -46,5 +45,25 @@ class FirebaseHotspotRepository {
 
             override fun onCancelled(error: DatabaseError) {}
         })
+    }
+
+    fun getHotspotsByUser(userId: String, onResult: (List<Hotspot>) -> Unit) {
+        db.child("hotspots")
+            .orderByChild("creatorId")
+            .equalTo(userId)
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val list = mutableListOf<Hotspot>()
+
+                    for (child in snapshot.children) {
+                        val hotspot = child.getValue(Hotspot::class.java)
+                        hotspot?.let { list.add(it) }
+                    }
+
+                    onResult(list)
+                }
+
+                override fun onCancelled(error: DatabaseError) {}
+            })
     }
 }
