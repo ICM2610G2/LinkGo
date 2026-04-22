@@ -1,28 +1,50 @@
 package com.friendevs.linkgo.data.repository
 
-import android.content.Context
 import com.friendevs.linkgo.domain.model.Hotspot
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import java.io.File
+import com.google.firebase.database.*
 
-fun loadHotspots(context: Context): List<Hotspot> {
-    val file = File(context.filesDir, "hotspots.json")
+class FirebaseHotspotRepository {
 
-    if (!file.exists()) {
-        val json = context.assets.open("hotSpots/HotSpots.json")
-            .bufferedReader().use { it.readText() }
-        file.writeText(json)
+    private val db = FirebaseDatabase.getInstance().reference
+
+    fun saveHotspot(userId: String, hotspot: Hotspot) {
+        val hotspotRef = db.child("hotspots").push()
+
+        val hotspotMap = mapOf(
+            "id" to hotspotRef.key,
+            "name" to hotspot.name,
+            "lat" to hotspot.lat,
+            "lng" to hotspot.lng,
+            "address" to hotspot.address,
+            "creatorId" to userId,
+            "fotos" to hotspot.fotos,
+            "url" to hotspot.url
+        )
+
+        hotspotRef.setValue(hotspotMap)
+
+        // 🔥 relación con usuario
+        db.child("users")
+            .child(userId)
+            .child("hotspots")
+            .child(hotspotRef.key!!)
+            .setValue(true)
     }
 
-    val json = file.readText()
-    val type = object : TypeToken<List<Hotspot>>() {}.type
-    return Gson().fromJson(json, type)
-}
+    fun getHotspots(onResult: (List<Hotspot>) -> Unit) {
+        db.child("hotspots").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val list = mutableListOf<Hotspot>()
 
-fun saveHotspot(context: Context, newHotspot: Hotspot) {
-    val current = loadHotspots(context).toMutableList()
-    current.add(newHotspot)
-    val file = File(context.filesDir, "hotspots.json")
-    file.writeText(Gson().toJson(current))
+                for (child in snapshot.children) {
+                    val hotspot = child.getValue(Hotspot::class.java)
+                    hotspot?.let { list.add(it) }
+                }
+
+                onResult(list)
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
 }

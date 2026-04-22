@@ -6,13 +6,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.friendevs.linkgo.data.repository.saveHotspot
+import com.friendevs.linkgo.data.repository.FirebaseHotspotRepository
 import com.friendevs.linkgo.domain.model.Hotspot
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -84,8 +85,9 @@ class AddHotspotViewModel : ViewModel() {
 
     fun saveHotspot(context: Context) {
         val latlng = state.selectedLatLng ?: return
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val newHotspot = Hotspot(
-            id = System.currentTimeMillis().toInt(),
+            id = "",
             name = state.selectedName,
             lat = latlng.latitude,
             lng = latlng.longitude,
@@ -93,7 +95,9 @@ class AddHotspotViewModel : ViewModel() {
             url = "",
             address = state.selectedAddress
         )
-        saveHotspot(context, newHotspot)
+        val repo = FirebaseHotspotRepository()
+
+        repo.saveHotspot(userId, newHotspot)
         state = state.copy(hotspotSaved = true)
     }
 

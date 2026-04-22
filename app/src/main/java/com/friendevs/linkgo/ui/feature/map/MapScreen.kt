@@ -24,7 +24,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.friendevs.linkgo.data.repository.loadHotspots
 import com.friendevs.linkgo.domain.model.Hotspot
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.android.gms.location.*
@@ -53,7 +52,7 @@ fun MapScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.loadHotSpots(context)
+        viewModel.loadHotSpots()
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION

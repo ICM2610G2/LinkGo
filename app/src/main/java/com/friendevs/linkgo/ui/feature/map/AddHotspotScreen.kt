@@ -18,7 +18,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.friendevs.linkgo.data.repository.saveHotspot
 import com.friendevs.linkgo.domain.model.Hotspot
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng

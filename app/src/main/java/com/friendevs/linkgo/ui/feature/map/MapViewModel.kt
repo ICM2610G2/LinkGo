@@ -4,10 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.friendevs.linkgo.data.repository.loadHotspots
+import com.friendevs.linkgo.data.repository.FirebaseHotspotRepository
 import com.friendevs.linkgo.domain.model.Hotspot
-import kotlinx.coroutines.launch
 
 data class MapState(
     val locationPermissionGranted: Boolean = false,
@@ -21,9 +19,11 @@ class MapViewModel : ViewModel() {
     var state by mutableStateOf(MapState())
         private set
 
-    fun loadHotSpots(context: android.content.Context) {
-        viewModelScope.launch {
-            state = state.copy(hotspots = loadHotspots(context))
+    fun loadHotSpots() {
+        val repo = FirebaseHotspotRepository()
+
+        repo.getHotspots { hotspots ->
+            state = state.copy(hotspots = hotspots)
         }
     }
 
