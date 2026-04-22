@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.chat
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

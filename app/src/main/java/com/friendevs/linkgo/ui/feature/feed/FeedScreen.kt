@@ -1,5 +1,4 @@
-package com.friendevs.linkgo.screens
-
+package com.friendevs.linkgo.ui.feature.feed
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,18 +15,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,48 +34,46 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.friendevs.linkgo.R
-import com.friendevs.linkgo.model.Contacts
-import com.friendevs.linkgo.navigation.Screens
+import com.friendevs.linkgo.domain.model.Contacts
+import com.friendevs.linkgo.ui.navigation.Screens
 
 @Composable
-fun ChatScreen(navController: NavController) {
+fun FeedScreen(navController: NavController) {
     Scaffold(
-        topBar = { topBarChat() },
-        floatingActionButton = {
-            floatingButtonChat()
-        }
+        topBar = { TopBarFeed() }
     )
     { paddingValues ->
 
-        //------------------CONTENIDO PRINCIPAL------------------
-
-        // fitros
         Column(
             modifier = Modifier
                 .padding(top = paddingValues.calculateTopPadding())
                 .fillMaxSize()
         ) {
 
+            // Filtros
             Row(
                 modifier = Modifier
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-
                 Text(
                     text = "All",
                     color = MaterialTheme.colorScheme.onSurface,
@@ -89,7 +82,6 @@ fun ChatScreen(navController: NavController) {
                         .padding(horizontal = 20.dp, vertical = 8.dp)
                         .clickable(onClick = {})
                 )
-
 
                 Text(
                     text = "Chats",
@@ -109,98 +101,88 @@ fun ChatScreen(navController: NavController) {
                         .clickable(onClick = {})
                 )
             }
-            // CHATS
-        LazyColumn(
-            modifier = Modifier,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(Contacts) { contact ->
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp)
-                        .height(80.dp)
-                        .clickable(onClick = { navController.navigate(Screens.ChatDetail.name) }),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                )
 
-                {
-                    Row(
-                        modifier = Modifier.fillMaxSize()
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(Contacts) { contact ->
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp),
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(2f)
-                                .fillMaxHeight(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Column(modifier = Modifier.fillMaxWidth()) {
 
-                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.img),
+                                    contentDescription = "Foto de perfil",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(45.dp)
+                                        .clip(CircleShape)
+                                )
+
+
+                                Column(
+                                    modifier = Modifier
+                                        .padding(start = 12.dp)
+                                        .weight(1f)
+                                ) {
+                                    Text(
+                                        text = contact.fullName,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = contact.time,
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
+
+
                             Image(
-                                painter = painterResource(id = R.drawable.img),
-                                contentDescription = "Foto",
+                                painter = painterResource(id = R.drawable.foto_feed),
+                                contentDescription = "Imagen del post",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(50.dp)
-                                    .clip(CircleShape)
+                                    .fillMaxWidth()
+                                    .height(300.dp) 
                             )
-                        }
-
-                        Column(
-                            modifier = Modifier
-                                .weight(9f)
-                                .fillMaxHeight()
-                                .padding(10.dp),
-                            verticalArrangement = Arrangement.Center
-
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement =
-                                    Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-
-                                Text(contact.fullName, fontSize = 20.sp)
-                                Text(contact.time, fontSize = 15.sp)
-
-                            }
-                            Row() {
-                                Text(
-                                    contact.message,
-                                    fontSize = 15.sp
-                                )
-                            }
-
+                            PostActions()
                         }
                     }
                 }
-
             }
         }
-
     }
-        }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun topBarChat() {
+fun TopBarFeed() {
     TopAppBar(
         title = {
             Text(
-                text = "Mensajes",
+                text = "Feed",
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
         },
-
-        //Icono de la barra Menu
         navigationIcon = {
-
             IconButton(
                 onClick = { },
                 modifier = Modifier
@@ -212,13 +194,12 @@ fun topBarChat() {
                     )
             ) {
                 Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu",
+                    painter = painterResource(id = R.drawable.photo_camera),
+                    contentDescription = "Cámara",
                     modifier = Modifier.size(20.dp)
                 )
             }
         },
-        //Icono de busqueda
         actions = {
             IconButton(
                 onClick = { },
@@ -238,29 +219,44 @@ fun topBarChat() {
                 )
             }
         },
-
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
 
-
 @Composable
-fun floatingButtonChat() {
-    FloatingActionButton(
-        onClick = { },
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-        shape = CircleShape
+fun PostActions() {
+
+    var liked by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Create, contentDescription = "Nuevo Mensaje")
+
+        IconButton(
+            onClick = { liked = !liked }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = "Like",
+                tint = if (liked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
+            )
+        }
+
+        Text(
+            text = if (liked) "Te gusta" else "Me gusta",
+            fontSize = 14.sp
+        )
     }
 }
 
-@Preview(showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
-fun chatPreview() {
-    ChatScreen(navController = NavController(LocalContext.current))
-
+fun FeedPreview() {
+    FeedScreen(navController = NavController(LocalContext.current))
 }

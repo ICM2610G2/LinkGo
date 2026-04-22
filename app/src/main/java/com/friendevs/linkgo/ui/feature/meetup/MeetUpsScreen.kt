@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.meetup
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,8 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.friendevs.linkgo.screens.MeetUpCard
-import com.friendevs.linkgo.model.meetUpContacts
+import com.friendevs.linkgo.ui.feature.meetup.MeetUpCard
+import com.friendevs.linkgo.domain.model.meetUpContacts
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

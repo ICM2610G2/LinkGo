@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,9 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import com.friendevs.linkgo.components.HotspotCard
-import com.friendevs.linkgo.data.loadHotspots
-import com.friendevs.linkgo.navigation.Screens
+import com.friendevs.linkgo.ui.feature.map.HotspotCard
+import com.friendevs.linkgo.data.repository.loadHotspots
+import com.friendevs.linkgo.ui.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,6 +1,6 @@
-package com.friendevs.linkgo.model
+package com.friendevs.linkgo.domain.model
 
-data class MyUser(
+data class User(
     val name: String = "",
     val lastName: String = "",
     val username: String = "",

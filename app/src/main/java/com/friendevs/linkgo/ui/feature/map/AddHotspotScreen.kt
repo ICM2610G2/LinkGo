@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.map
 
 import android.content.Context
 import android.widget.Toast
@@ -18,8 +18,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.friendevs.linkgo.data.saveHotspot
-import com.friendevs.linkgo.model.Hotspot
+import com.friendevs.linkgo.data.repository.saveHotspot
+import com.friendevs.linkgo.domain.model.Hotspot
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.Places
@@ -30,92 +30,6 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-
-data class AddHotspotState(
-    val searchQuery: String = "",
-    val suggestions: List<Pair<String, String>> = emptyList(),
-    val selectedLatLng: LatLng? = null,
-    val selectedName: String = "",
-    val selectedAddress: String = "",
-    val showMap: Boolean = false,
-    val hotspotSaved: Boolean = false,
-    val errorMessage: String? = null
-)
-
-class AddHotspotViewModel : ViewModel() {
-
-    var state by mutableStateOf(AddHotspotState())
-        private set
-
-    fun onSearchQueryChange(query: String, placesClient: PlacesClient) {
-        state = state.copy(searchQuery = query, suggestions = emptyList())
-
-        if (query.length >= 3) {
-            viewModelScope.launch {
-                try {
-                    val request = FindAutocompletePredictionsRequest.builder()
-                        .setQuery(query)
-                        .build()
-                    val response = placesClient
-                        .findAutocompletePredictions(request)
-                        .await()
-                    state = state.copy(
-                        suggestions = response.autocompletePredictions.map {
-                            Pair(it.placeId, it.getFullText(null).toString())
-                        }
-                    )
-                } catch (e: Exception) {
-                    state = state.copy(suggestions = emptyList())
-                }
-            }
-        }
-    }
-
-    fun onSuggestionSelected(placeId: String, description: String, placesClient: PlacesClient) {
-        viewModelScope.launch {
-            try {
-                val placeFields = listOf(
-                    Place.Field.LAT_LNG,
-                    Place.Field.NAME,
-                    Place.Field.ADDRESS
-                )
-                val fetchRequest = FetchPlaceRequest.newInstance(placeId, placeFields)
-                val placeResponse = placesClient.fetchPlace(fetchRequest).await()
-                val place = placeResponse.place
-
-                state = state.copy(
-                    selectedLatLng = place.latLng,
-                    selectedName = place.name ?: description,
-                    selectedAddress = place.address ?: "",
-                    searchQuery = place.name ?: description,
-                    suggestions = emptyList(),
-                    showMap = true
-                )
-            } catch (e: Exception) {
-                state = state.copy(errorMessage = "Error al obtener lugar")
-            }
-        }
-    }
-
-    fun saveHotspot(context: Context) {
-        val latlng = state.selectedLatLng ?: return
-        val newHotspot = Hotspot(
-            id = System.currentTimeMillis().toInt(),
-            name = state.selectedName,
-            lat = latlng.latitude,
-            lng = latlng.longitude,
-            fotos = 0,
-            url = "",
-            address = state.selectedAddress
-        )
-        saveHotspot(context, newHotspot)
-        state = state.copy(hotspotSaved = true)
-    }
-
-    fun clearError() {
-        state = state.copy(errorMessage = null)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

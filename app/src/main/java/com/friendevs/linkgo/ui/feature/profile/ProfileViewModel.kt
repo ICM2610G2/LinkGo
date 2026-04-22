@@ -1,7 +1,8 @@
-package com.friendevs.linkgo.model
+package com.friendevs.linkgo.ui.feature.profile
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.friendevs.linkgo.domain.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,7 @@ class ProfileViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
 
     private val _userState =
-        MutableStateFlow(MyUser(name = "Nicolas", username = "@ndgc", age = "20"))
+        MutableStateFlow(User(name = "", username = "@", age = ""))
     val userState = _userState.asStateFlow()
 
     init {
@@ -24,7 +25,7 @@ class ProfileViewModel : ViewModel() {
         val userId = auth.currentUser?.uid ?: return
         val myRef = database.getReference("users/$userId")
         myRef.get().addOnSuccessListener { snapshot ->
-            val user = snapshot.getValue(MyUser::class.java)
+            val user = snapshot.getValue(User::class.java)
             if (user != null) {
                 _userState.value = user
             }

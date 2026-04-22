@@ -1,7 +1,7 @@
-package com.friendevs.linkgo.data
+package com.friendevs.linkgo.data.repository
 
 import android.content.Context
-import com.friendevs.linkgo.model.Hotspot
+import com.friendevs.linkgo.domain.model.Hotspot
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File

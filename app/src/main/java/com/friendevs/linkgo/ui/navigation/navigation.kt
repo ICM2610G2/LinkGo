@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.navigation
+package com.friendevs.linkgo.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.padding
@@ -24,18 +24,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.friendevs.linkgo.screens.AddHotspotScreen
-import com.friendevs.linkgo.screens.ChatDetailScreen
-import com.friendevs.linkgo.screens.ChatScreen
-import com.friendevs.linkgo.screens.FeedScreen
-import com.friendevs.linkgo.screens.HotspotsScreen
-import com.friendevs.linkgo.screens.LoginScreen
-import com.friendevs.linkgo.screens.LoginViewModel
-import com.friendevs.linkgo.screens.MapScreen
-import com.friendevs.linkgo.screens.MeetUpsScreen
-import com.friendevs.linkgo.screens.ProfileScreen
-import com.friendevs.linkgo.screens.RegisterScreen
-import com.friendevs.linkgo.screens.RegisterViewModel
+import com.friendevs.linkgo.ui.feature.map.AddHotspotScreen
+import com.friendevs.linkgo.ui.feature.chat.ChatDetailScreen
+import com.friendevs.linkgo.ui.feature.chat.ChatScreen
+import com.friendevs.linkgo.ui.feature.feed.FeedScreen
+import com.friendevs.linkgo.ui.feature.map.HotspotsScreen
+import com.friendevs.linkgo.ui.feature.auth.LoginScreen
+import com.friendevs.linkgo.ui.feature.auth.LoginViewModel
+import com.friendevs.linkgo.ui.feature.map.MapScreen
+import com.friendevs.linkgo.ui.feature.meetup.MeetUpsScreen
+import com.friendevs.linkgo.ui.feature.profile.ProfileScreen
+import com.friendevs.linkgo.ui.feature.auth.RegisterScreen
+import com.friendevs.linkgo.ui.feature.auth.RegisterViewModel
 
 enum class Screens {
     Map,
@@ -46,7 +46,8 @@ enum class Screens {
     Profile,
     MeetUp,
     login,
-    register
+    register,
+
     AddHotspot
 }
 

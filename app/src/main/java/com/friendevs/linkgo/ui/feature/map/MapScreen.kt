@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.map
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -24,55 +24,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.friendevs.linkgo.data.loadHotspots
-import com.friendevs.linkgo.model.Hotspot
-import com.friendevs.linkgo.navigation.Screens
+import com.friendevs.linkgo.data.repository.loadHotspots
+import com.friendevs.linkgo.domain.model.Hotspot
+import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
-
-data class MapState(
-    val locationPermissionGranted: Boolean = false,
-    val showDialog: Boolean = true,
-    val firstLocationUpdate: Boolean = true,
-    val hotspots: List<Hotspot> = emptyList()
-)
-
-class MapViewModel : ViewModel() {
-
-    var state by mutableStateOf(MapState())
-        private set
-
-    fun loadHotSpots(context: android.content.Context) {
-        viewModelScope.launch {
-            state = state.copy(hotspots = loadHotspots(context))
-        }
-    }
-
-    fun onPermissionResult(granted: Boolean) {
-        state = state.copy(
-            locationPermissionGranted = granted,
-            showDialog = false
-        )
-    }
-
-    fun onPermissionAlreadyGranted() {
-        state = state.copy(
-            locationPermissionGranted = true,
-            showDialog = false
-        )
-    }
-
-    fun onFirstLocationUpdated() {
-        state = state.copy(firstLocationUpdate = false)
-    }
-
-    fun onCenterLocation() {
-        state = state.copy(firstLocationUpdate = true)
-    }
-}
 
 @Composable
 fun MapScreen(

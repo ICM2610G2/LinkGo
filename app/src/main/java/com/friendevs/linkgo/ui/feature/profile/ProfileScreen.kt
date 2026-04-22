@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.profile
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -48,6 +48,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import com.friendevs.linkgo.domain.model.User
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -70,9 +71,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.friendevs.linkgo.R
-import com.friendevs.linkgo.model.MyUser
-import com.friendevs.linkgo.model.ProfileViewModel
-import com.friendevs.linkgo.navigation.Screens
+import com.friendevs.linkgo.ui.feature.profile.ProfileViewModel
+import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.collections.emptyList
 
@@ -113,7 +113,7 @@ fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = vi
 }
 
 @Composable
-fun EditProfileBox(user: MyUser, model: ProfileViewModel, onDismiss: () -> Unit) {
+fun EditProfileBox(user: User, model: ProfileViewModel, onDismiss: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -256,7 +256,7 @@ fun ProfileHeader(fullName: String, username: String, email: String) {
 }
 
 @Composable
-fun StatsRow(user: MyUser) {
+fun StatsRow(user: User) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly

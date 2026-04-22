@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.meetup
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.friendevs.linkgo.model.MeetUpContact
+import com.friendevs.linkgo.domain.model.MeetUpContact
 
 @Composable
 fun MeetUpCard(contact: MeetUpContact) {
