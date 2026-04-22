@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.shared
+package com.friendevs.linkgo.util
 
 fun validEmailAddress(email: String): Boolean {
     val regex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"

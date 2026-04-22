@@ -1,31 +1,18 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.auth
 
-import android.content.Context
 import android.widget.Toast
 import androidx.biometric.BiometricPrompt
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -33,45 +20,17 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
+import com.friendevs.linkgo.R
 import com.friendevs.linkgo.auth
-import com.friendevs.linkgo.navigation.Screens
-import com.friendevs.linkgo.shared.validEmailAddress
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-
-
-data class LoginState(
-    val email : String = "",
-    val password: String = "",
-    val emailError : String = "",
-    val passwordError : String = ""
-
-)
-class LoginViewModel: ViewModel(){
-    private  val _loginState = MutableStateFlow<LoginState>(LoginState())
-    val loginState = _loginState.asStateFlow()
-
-    fun updateEmail(newValue: String){
-        _loginState.update { it.copy(email = newValue) }
-    }
-    fun updatePassword(newValue: String){
-        _loginState.update { it.copy(password = newValue) }
-    }
-    fun updateEmailError(newValue: String){
-        _loginState.update { it.copy(emailError = newValue) }
-    }
-    fun updatePassError(newValue: String){
-        _loginState.update { it.copy(passwordError = newValue) }
-    }
-}
+import com.friendevs.linkgo.ui.navigation.Screens
+import com.friendevs.linkgo.util.validEmailAddress
+import com.friendevs.linkgo.ui.feature.auth.LoginViewModel
 
 @Composable
 fun LoginScreen(navController: NavHostController, model: LoginViewModel) {
 
     val user by model.loginState.collectAsState()
     val context = LocalContext.current
-
     val activity = context as? FragmentActivity
 
     LaunchedEffect(Unit) {
@@ -90,10 +49,10 @@ fun LoginScreen(navController: NavHostController, model: LoginViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Icon(
-            Icons.Default.Person,
-            contentDescription = null,
-            modifier = Modifier.size(150.dp)
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "LinkGo logo",
+            modifier = Modifier.size(200.dp)
         )
 
         TextField(
@@ -136,6 +95,26 @@ fun LoginScreen(navController: NavHostController, model: LoginViewModel) {
             Text("Login")
         }
 
+        IconButton(
+            onClick = {
+                activity?.let {
+                    showBiometricPrompt(it) {
+                        navController.navigate(Screens.Map.name) {
+                            popUpTo(Screens.login.name) { inclusive = true }
+                        }
+                    }
+                }
+            },
+            modifier = Modifier.padding(vertical = 8.dp).size(60.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = "Huella",
+                modifier = Modifier.size(50.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+
         Button(
             onClick = {
                 navController.navigate(Screens.register.name)
@@ -144,37 +123,12 @@ fun LoginScreen(navController: NavHostController, model: LoginViewModel) {
         ) {
             Text("Register")
         }
-
-        if (auth.currentUser != null || true) {
-            IconButton(
-                onClick = {
-                    activity?.let {
-                        showBiometricPrompt(it) {
-                            navController.navigate(Screens.Map.name) {
-                                popUpTo(Screens.login.name) { inclusive = true }
-                            }
-                        }
-                    }
-                },
-                modifier = Modifier.padding(vertical = 8.dp).size(60.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Huella",
-                    modifier = Modifier.size(50.dp),
-                    tint = Color.Gray
-                )
-            }
-        }
     }
 }
 
-fun showBiometricPrompt(
-    activity: FragmentActivity,
-    onSuccess: () -> Unit
-) {
+fun showBiometricPrompt(activity: FragmentActivity, onSuccess: () -> Unit) {
     val executor = ContextCompat.getMainExecutor(activity)
-    val biometricPrompt = BiometricPrompt( activity, executor,
+    val biometricPrompt = BiometricPrompt(activity, executor,
         object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
@@ -193,6 +147,7 @@ fun showBiometricPrompt(
         .build()
     biometricPrompt.authenticate(promptInfo)
 }
+
 fun validateForm(model: LoginViewModel, email: String, password: String): Boolean {
     if (email.isEmpty()) {
         model.updateEmailError("Email is empty")
@@ -207,12 +162,12 @@ fun validateForm(model: LoginViewModel, email: String, password: String): Boolea
     if (password.isEmpty()) {
         model.updatePassError("Password is empty")
         return false
-    } else {  model.updatePassError("") }
+    } else { model.updatePassError("") }
 
     if (password.length < 6) {
         model.updatePassError("Password is too short")
         return false
-    } else { model.updatePassError("")  }
+    } else { model.updatePassError("") }
 
     return true
 }

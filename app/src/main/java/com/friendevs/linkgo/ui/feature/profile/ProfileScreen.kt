@@ -1,5 +1,12 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.profile
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,25 +31,21 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -66,25 +69,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import com.friendevs.linkgo.domain.model.User
 import com.friendevs.linkgo.R
-import com.friendevs.linkgo.model.MyUser
-import com.friendevs.linkgo.model.ProfileViewModel
-import com.friendevs.linkgo.navigation.Screens
+import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.firebase.auth.FirebaseAuth
-import kotlin.collections.emptyList
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 @ExperimentalMaterial3Api
 fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = viewModel()) {
     val user by model.userState.collectAsState()
+    val profilePhotoUrl by model.profilePhotoUrl.collectAsState()
+    val isUploadingProfilePhoto by model.isUploadingProfilePhoto.collectAsState()
     var showEditBox by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = { UserTopAppBar(navController) }
+            topBar = {
+                UserTopAppBar(
+                    navController = navController,
+                    onSettingsClick = { showEditBox = true }
+                )
+            }
         ) { paddingValues ->
 
             LazyColumn(
@@ -95,10 +107,19 @@ fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = vi
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(25.dp)
             ) {
-                item { ProfileHeader("${user.name} ${user.lastName}".trim(), user.username, user.email) }
+                item {
+                    ProfileHeader(
+                        fullName = "${user.name} ${user.lastName}".trim(),
+                        username = user.username,
+                        email = user.email,
+                        profilePhotoUrl = profilePhotoUrl,
+                        isUploadingProfilePhoto = isUploadingProfilePhoto,
+                        onProfilePhotoSelected = model::uploadProfilePhoto
+                    )
+                }
                 item { ProfileEditRow(onEditClick = { showEditBox = true }) }
                 item { StatsRow(user) }
-                item { MomentsGrid() }
+                item { MomentsGrid(model = model) }
             }
         }
 
@@ -113,7 +134,7 @@ fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = vi
 }
 
 @Composable
-fun EditProfileBox(user: MyUser, model: ProfileViewModel, onDismiss: () -> Unit) {
+fun EditProfileBox(user: User, model: ProfileViewModel, onDismiss: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -203,7 +224,9 @@ fun ProfileEditRow(onEditClick: () -> Unit) {
     ) {
         Button(
             onClick = onEditClick,
-            Modifier.width(270.dp).height(50.dp),
+            Modifier
+                .width(270.dp)
+                .height(50.dp),
             shape = RoundedCornerShape(50.dp),
             colors = ButtonDefaults.buttonColors(
                 MaterialTheme.colorScheme.primary
@@ -223,7 +246,7 @@ fun ProfileEditRow(onEditClick: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Default.Share,
-                contentDescription = "Share",
+                contentDescription = "Compartir",
                 tint = MaterialTheme.colorScheme.onPrimary
             )
         }
@@ -231,9 +254,20 @@ fun ProfileEditRow(onEditClick: () -> Unit) {
 }
 
 @Composable
-fun ProfileHeader(fullName: String, username: String, email: String) {
+fun ProfileHeader(
+    fullName: String,
+    username: String,
+    email: String,
+    profilePhotoUrl: String,
+    isUploadingProfilePhoto: Boolean,
+    onProfilePhotoSelected: (Uri) -> Unit
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ProfileAvatar()
+        ProfileAvatar(
+            profilePhotoUrl = profilePhotoUrl,
+            isUploadingProfilePhoto = isUploadingProfilePhoto,
+            onProfilePhotoSelected = onProfilePhotoSelected
+        )
         Text(
             fullName, style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold, fontSize = 30.sp
@@ -256,7 +290,7 @@ fun ProfileHeader(fullName: String, username: String, email: String) {
 }
 
 @Composable
-fun StatsRow(user: MyUser) {
+fun StatsRow(user: User) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
@@ -270,7 +304,9 @@ fun StatsRow(user: MyUser) {
 @Composable
 fun StatItem(number: String, label: String) {
     Card(
-        modifier = Modifier.width(100.dp).height(80.dp),
+        modifier = Modifier
+            .width(100.dp)
+            .height(80.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
@@ -291,7 +327,7 @@ fun StatItem(number: String, label: String) {
 
 @Composable
 @ExperimentalMaterial3Api
-fun UserTopAppBar(navController: NavHostController) {
+fun UserTopAppBar(navController: NavHostController, onSettingsClick: () -> Unit) {
     TopAppBar(
         title = {
             Text(
@@ -302,7 +338,7 @@ fun UserTopAppBar(navController: NavHostController) {
         },
         navigationIcon = {
             IconButton(
-                onClick = { },
+                onClick = onSettingsClick,
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
                     .size(40.dp)
@@ -349,14 +385,52 @@ fun UserTopAppBar(navController: NavHostController) {
 }
 
 @Composable
-fun ProfileAvatar() {
+fun ProfileAvatar(
+    profilePhotoUrl: String,
+    isUploadingProfilePhoto: Boolean,
+    onProfilePhotoSelected: (Uri) -> Unit
+) {
+    val context = LocalContext.current
+    var showOptions by remember { mutableStateOf(false) }
+    val cameraPermission = Manifest.permission.CAMERA
+
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                cameraPermission
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            bitmapToCacheUri(context, bitmap, "profile")?.let(onProfilePhotoSelected)
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            onProfilePhotoSelected(uri)
+        }
+    }
+
+    val requestCameraPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasCameraPermission = granted
+        if (granted) cameraLauncher.launch(null)
+    }
+
     Box(
         contentAlignment = Alignment.BottomEnd,
         modifier = Modifier.size(140.dp)
     ) {
-        Image(
-            painter = painterResource(R.drawable.nico1), // tu imagen
-            contentDescription = null,
+        Box(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
@@ -364,45 +438,235 @@ fun ProfileAvatar() {
                     width = 4.dp,
                     color = MaterialTheme.colorScheme.primary,
                     shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (profilePhotoUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = profilePhotoUrl,
+                    contentDescription = "Foto de perfil",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
                 )
-        )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.photo_camera),
+                    contentDescription = "Foto por defecto",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
-        Box(
+            if (isUploadingProfilePhoto) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.35f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(26.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+
+        IconButton(
+            onClick = {
+                if (!isUploadingProfilePhoto) {
+                    showOptions = true
+                }
+            },
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
                 .border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
-            contentAlignment = Alignment.Center
+            enabled = !isUploadingProfilePhoto
         ) {
             Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit",
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar foto de perfil",
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(18.dp)
+            )
+        }
+
+        if (showOptions) {
+            AlertDialog(
+                onDismissRequest = { showOptions = false },
+                title = { Text("Seleccionar opción") },
+                text = {
+                    Column {
+                        TextButton(
+                            onClick = {
+                                showOptions = false
+                                if (hasCameraPermission) {
+                                    cameraLauncher.launch(null)
+                                } else {
+                                    requestCameraPermission.launch(cameraPermission)
+                                }
+                            }
+                        ) {
+                            Text("Tomar foto")
+                        }
+
+                        TextButton(
+                            onClick = {
+                                showOptions = false
+                                galleryLauncher.launch("image/*")
+                            }
+                        ) {
+                            Text("Elegir de galería")
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { showOptions = false }) {
+                        Text("Cancelar")
+                    }
+                }
             )
         }
     }
 }
 
 @Composable
-fun MomentsGrid() {
-    Row(
-        Modifier.fillMaxWidth().padding(13.dp),
-        horizontalArrangement = Arrangement.Start,
-    ) {
-        Text("Mis Momentos", style = MaterialTheme.typography.titleMedium)
+fun MomentsGrid(model: ProfileViewModel) {
+    val context = LocalContext.current
+    val photos by model.momentPhotos.collectAsState()
+    val isUploading by model.isUploadingMoment.collectAsState()
+    var showOptions by remember { mutableStateOf(false) }
+    val cameraPermission = Manifest.permission.CAMERA
+
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                cameraPermission
+            ) == PackageManager.PERMISSION_GRANTED
+        )
     }
 
-    val context = LocalContext.current
 
-    val imagePaths = remember {
-        val files = context.assets.list("selfpics")
-        if (files != null) {
-            files.map { "selfpics/$it" }
-        } else {
-            emptyList()
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            bitmapToCacheUri(context, bitmap, "moment")?.let(model::uploadMomentPhoto)
         }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            model.uploadMomentPhoto(uri)
+        }
+    }
+
+    val requestCameraPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasCameraPermission = granted
+        if (granted) cameraLauncher.launch(null)
+    }
+
+
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(13.dp),
+        horizontalArrangement = Arrangement.Start,
+    ) {
+        Text(
+            "Mis Momentos",
+            Modifier.weight(70f),
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Button(
+            onClick = { showOptions = true },
+            enabled = !isUploading,
+            modifier = Modifier
+                .size(30.dp)
+                .weight(30f),
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Agregar foto")
+        }
+    }
+
+
+    if (showOptions) {
+        AlertDialog(
+            onDismissRequest = { showOptions = false },
+            title = { Text("Seleccionar opción") },
+            text = {
+                Column {
+
+                    TextButton(
+                        onClick = {
+                            showOptions = false
+                            if (hasCameraPermission) {
+                                cameraLauncher.launch(null)
+                            } else {
+                                requestCameraPermission.launch(cameraPermission)
+                            }
+                        }
+                    ) {
+                        Text("Tomar foto")
+                    }
+
+
+                    TextButton(
+                        onClick = {
+                            showOptions = false
+                            galleryLauncher.launch("image/*")
+                        }
+                    ) {
+                        Text("Elegir de galería")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showOptions = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (isUploading) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            Text(
+                text = " Subiendo foto...",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+
+    if (photos.isEmpty() && !isUploading) {
+        Text(
+            text = "Aun no tienes fotos en tus momentos",
+            modifier = Modifier.padding(horizontal = 16.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray
+        )
     }
 
     LazyVerticalGrid(
@@ -412,9 +676,9 @@ fun MomentsGrid() {
         verticalArrangement = Arrangement.spacedBy(4.dp),
         contentPadding = PaddingValues(4.dp)
     ) {
-        items(imagePaths) { path ->
+        items(photos, key = { it }) { photoUrl ->
             AsyncImage(
-                model = "file:///android_asset/$path",
+                model = photoUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -424,3 +688,15 @@ fun MomentsGrid() {
         }
     }
 }
+
+private fun bitmapToCacheUri(context: Context, bitmap: Bitmap, filePrefix: String): Uri? {
+    return runCatching {
+        val file = File(context.cacheDir, "${filePrefix}_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+        }
+        file.toUri()
+    }.getOrNull()
+}
+
+

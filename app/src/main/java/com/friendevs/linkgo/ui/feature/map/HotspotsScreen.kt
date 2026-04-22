@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -8,24 +8,38 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import com.friendevs.linkgo.components.HotspotCard
-import com.friendevs.linkgo.data.loadHotspots
-import com.friendevs.linkgo.navigation.Screens
+import com.friendevs.linkgo.data.repository.FirebaseHotspotRepository
+import com.friendevs.linkgo.domain.model.Hotspot
+import com.friendevs.linkgo.ui.navigation.Screens
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HotspotsScreen(navController: NavController) {
+    val repository = remember { FirebaseHotspotRepository() }
+    var hotspots by remember { mutableStateOf<List<Hotspot>>(emptyList()) }
 
-    val context = LocalContext.current
-    val hotspots = remember { loadHotspots(context) }
+    LaunchedEffect(Unit) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            repository.getHotspotsByUser(userId) { list ->
+                hotspots = list
+            }
+        } else {
+            hotspots = emptyList()
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

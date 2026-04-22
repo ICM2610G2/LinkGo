@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.model
+package com.friendevs.linkgo.domain.model
 
 data class MeetUpContact(
     val fullName: String,

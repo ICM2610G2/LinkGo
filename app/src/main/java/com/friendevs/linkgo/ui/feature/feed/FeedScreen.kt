@@ -1,4 +1,4 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.feed
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -53,8 +53,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.friendevs.linkgo.R
-import com.friendevs.linkgo.model.Contacts
-import com.friendevs.linkgo.navigation.Screens
+import com.friendevs.linkgo.domain.model.Contacts
+import com.friendevs.linkgo.ui.navigation.Screens
 
 @Composable
 fun FeedScreen(navController: NavController, sensorViewModel: com.friendevs.linkgo.model.SensorViewModel = viewModel()) {

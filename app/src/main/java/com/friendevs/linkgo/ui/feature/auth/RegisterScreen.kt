@@ -1,12 +1,14 @@
-package com.friendevs.linkgo.screens
+package com.friendevs.linkgo.ui.feature.auth
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -17,55 +19,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
+import com.friendevs.linkgo.R
 import com.friendevs.linkgo.auth
-import com.friendevs.linkgo.model.MyUser
-import com.friendevs.linkgo.navigation.Screens
-import com.friendevs.linkgo.shared.validEmailAddress
+import com.friendevs.linkgo.domain.model.User
+import com.friendevs.linkgo.ui.navigation.Screens
+import com.friendevs.linkgo.util.validEmailAddress
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-
-
-data class RegisterState(
-    val nombre: String = "",
-    val apellido: String = "",
-    val email: String = "",
-    val password: String = "",
-    val nombreError: String = "",
-    val apellidoError: String = "",
-    val emailError: String = "",
-    val passwordError: String = ""
-)
-
-class RegisterViewModel : ViewModel() {
-    private val _registerState = MutableStateFlow(RegisterState())
-    val registerState = _registerState.asStateFlow()
-
-    fun updateName(newValue: String) {
-        _registerState.update { it.copy(nombre = newValue) } }
-    fun updateLastName(newValue: String) {
-        _registerState.update { it.copy(apellido = newValue) } }
-    fun updateEmail(newValue: String) {
-        _registerState.update { it.copy(email = newValue) } }
-    fun updatePassword(newValue: String) {
-        _registerState.update { it.copy(password = newValue) } }
-
-    fun updateNameError(newValue: String) {
-        _registerState.update { it.copy(nombreError = newValue) } }
-    fun updateLastError(newValue: String) {
-        _registerState.update { it.copy(apellidoError = newValue) } }
-    fun updateEmailError(newValue: String) {
-        _registerState.update { it.copy(emailError = newValue) } }
-    fun updatePassError(newValue: String) {
-        _registerState.update { it.copy(passwordError = newValue) } }
-}
 
 
 @Composable
@@ -80,6 +49,12 @@ fun RegisterScreen(navController: NavHostController, model: RegisterViewModel) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "LinkGo logo",
+            modifier = Modifier.size(180.dp)
+        )
+
         TextField(
             value = state.nombre,
             onValueChange = { model.updateName(it) },
@@ -128,7 +103,7 @@ fun RegisterScreen(navController: NavHostController, model: RegisterViewModel) {
                                 val user = auth.currentUser
                                 val database = FirebaseDatabase.getInstance()
                                 val myRef = database.getReference("users/${user?.uid}")
-                                val myUser = MyUser(
+                                val myUser = User(
                                     name = state.nombre,
                                     lastName = state.apellido,
                                     email = state.email,
