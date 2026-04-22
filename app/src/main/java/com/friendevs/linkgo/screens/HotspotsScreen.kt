@@ -8,33 +8,38 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.friendevs.linkgo.components.HotspotCard
-import com.friendevs.linkgo.model.Hotspot
+import com.friendevs.linkgo.data.loadHotspots
 import com.friendevs.linkgo.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HotspotsScreen(navController: NavController) {
 
+    val context = LocalContext.current
+    val hotspots = remember { loadHotspots(context) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = { topBarHostpots() }
+        topBar = { topBarHostpots(navController) }
     ) { paddingValues ->
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding()).padding(horizontal = 8.dp, vertical = 8.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = paddingValues.calculateTopPadding())
+                .padding(horizontal = 8.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
-            items(Hotspot.hotspotList) { hotspot ->
+            items(hotspots) { hotspot ->
                 HotspotCard(hotspot = hotspot)
             }
         }
@@ -43,7 +48,7 @@ fun HotspotsScreen(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun topBarHostpots() {
+fun topBarHostpots(navController: NavController) {
     TopAppBar(
         title = {
             Text(
@@ -52,12 +57,9 @@ fun topBarHostpots() {
                 fontWeight = FontWeight.Bold,
             )
         },
-
-        //Icono de la barra Menu
         navigationIcon = {
-
             IconButton(
-                onClick = { },
+                onClick = { navController.navigate(Screens.AddHotspot.name) },
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
                     .size(40.dp)
@@ -73,7 +75,6 @@ fun topBarHostpots() {
                 )
             }
         },
-        //Icono de busqueda
         actions = {
             IconButton(
                 onClick = { },
@@ -93,7 +94,6 @@ fun topBarHostpots() {
                 )
             }
         },
-
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
