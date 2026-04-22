@@ -3,6 +3,7 @@ package com.friendevs.linkgo.ui.feature.map
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Looper
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -20,18 +21,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.friendevs.linkgo.domain.model.Hotspot
+import com.friendevs.linkgo.ui.feature.routes.RouteInfoCard
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.maps.android.compose.*
-import kotlinx.coroutines.launch
 
 @Composable
 fun MapScreen(
@@ -66,6 +64,13 @@ fun MapScreen(
         }
     }
 
+    LaunchedEffect(state.routeError) {
+        state.routeError?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.clearRouteError()
+        }
+    }
+
     LaunchedEffect(state.locationPermissionGranted) {
         if (state.locationPermissionGranted) {
             val locationRequest = LocationRequest.Builder(
@@ -77,6 +82,7 @@ fun MapScreen(
                 override fun onLocationResult(result: LocationResult) {
                     val location = result.lastLocation ?: return
                     val userLatLng = LatLng(location.latitude, location.longitude)
+                    viewModel.onUserLocationUpdate(userLatLng)
 
                     if (state.firstLocationUpdate) {
                         cameraPositionState.move(
@@ -100,6 +106,7 @@ fun MapScreen(
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
                     val userLatLng = LatLng(it.latitude, it.longitude)
+                    viewModel.onUserLocationUpdate(userLatLng)
                     cameraPositionState.move(
                         CameraUpdateFactory.newLatLngZoom(userLatLng, 15f)
                     )
@@ -126,7 +133,19 @@ fun MapScreen(
                     Marker(
                         state = MarkerState(position = LatLng(hotspot.lat, hotspot.lng)),
                         title = hotspot.name,
-                        snippet = hotspot.address
+                        snippet = hotspot.address,
+                        onClick = {
+                            viewModel.calculateRouteToHotspot(hotspot)
+                            true
+                        }
+                    )
+                }
+
+                if (state.routePoints.isNotEmpty()) {
+                    Polyline(
+                        points = state.routePoints,
+                        color = MaterialTheme.colorScheme.primary,
+                        width = 12f
                     )
                 }
             }
@@ -160,6 +179,19 @@ fun MapScreen(
                         .background(MaterialTheme.colorScheme.surface, CircleShape)
                         .padding(horizontal = 20.dp, vertical = 8.dp)
                         .clickable { }
+                )
+            }
+
+            if (state.isRouteLoading || state.routePoints.isNotEmpty()) {
+                RouteInfoCard(
+                    eta = state.routeEta,
+                    distance = state.routeDistance,
+                    isLoading = state.isRouteLoading,
+                    onClose = { viewModel.clearRoute() },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 120.dp)
+                        .padding(horizontal = 16.dp)
                 )
             }
 
