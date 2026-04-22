@@ -1,12 +1,17 @@
 package com.friendevs.linkgo.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -14,9 +19,15 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -46,14 +57,17 @@ enum class Screens {
     Profile,
     MeetUp,
     login,
-    register
+    register,
     AddHotspot
 }
 
 @Composable
 @ExperimentalMaterial3Api
-fun Navigation() {
+fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
     val navController = rememberNavController()
+
+    val sheetState = rememberModalBottomSheetState()
+    var showSafetySheet by remember { mutableStateOf(false) }
 
     val loginViewModel: LoginViewModel = viewModel()
     val registerViewModel: RegisterViewModel = viewModel()
@@ -70,49 +84,105 @@ fun Navigation() {
         Screens.AddHotspot.name
     )
 
+    LaunchedEffect(sensorViewModel.shakeDetected) {
+        if (sensorViewModel.shakeDetected) {
+            showSafetySheet = true
+            sensorViewModel.resetShake()
+        }
+    }
+
     Scaffold(
         bottomBar = {
             if (currentRoute in bottomBarRoutes) {
                 BottomNavBar(navController = navController, currentRoute = currentRoute)
             }
         }
-    ) { innerPadding -> 
-        NavHost(
-            navController = navController,
-            startDestination = Screens.login.name,
-            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
-        ) {
-            composable(route = Screens.login.name) {
-                LoginScreen(navController, loginViewModel)
+    ) { innerPadding ->
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())
+        ){
+            NavHost(
+                navController = navController,
+                startDestination = Screens.login.name,
+            ) {
+                composable(route = Screens.login.name) {
+                    LoginScreen(navController, loginViewModel)
+                }
+                composable(route = Screens.register.name) {
+                    RegisterScreen(navController, registerViewModel)
+                }
+                composable(route = Screens.Map.name) {
+                    MapScreen(navController, sensorViewModel = sensorViewModel)
+                }
+                composable(route = Screens.Feed.name) {
+                    FeedScreen(navController, sensorViewModel = sensorViewModel)
+                }
+                composable(route = Screens.Chat.name) {
+                    ChatScreen(navController)
+                }
+                composable(route = Screens.ChatDetail.name) {
+                    ChatDetailScreen(navController, sensorViewModel = sensorViewModel)
+                }
+                composable(route = Screens.Hotspots.name) {
+                    HotspotsScreen(navController)
+                }
+                composable(route = Screens.Profile.name) {
+                    ProfileScreen(navController)
+                }
+                composable(route = Screens.MeetUp.name) {
+                    MeetUpsScreen(navController)
+                }
+                composable(route = Screens.AddHotspot.name) {
+                    AddHotspotScreen(navController)
+                }
             }
-            composable(route = Screens.register.name) {
-                RegisterScreen(navController, registerViewModel)
-            }
-            composable(route = Screens.Map.name) {
-                MapScreen(navController)
-            }
-            composable(route = Screens.Feed.name) {
-                FeedScreen(navController)
-            }
-            composable(route = Screens.Chat.name) {
-                ChatScreen(navController)
-            }
-            composable(route = Screens.ChatDetail.name) {
-                ChatDetailScreen(navController)
-            }
-            composable(route = Screens.Hotspots.name) {
-                HotspotsScreen(navController)
-            }
-            composable(route = Screens.Profile.name) {
-                ProfileScreen(navController)
-            }
-            composable(route = Screens.MeetUp.name) {
-                MeetUpsScreen(navController)
-            }
-            composable(route = Screens.AddHotspot.name) {
-                AddHotspotScreen(navController)
+            if (showSafetySheet) {
+                androidx.compose.material3.ModalBottomSheet(
+                    onDismissRequest = { showSafetySheet = false },
+                    sheetState = sheetState,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    dragHandle = { androidx.compose.material3.BottomSheetDefaults.DragHandle() }
+                ) {
+                    androidx.compose.foundation.layout.Column(
+                        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 40.dp),
+                        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Maniobra brusca detectada",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "¿Deseas llamar a emergencias?",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(24.dp))
+                        androidx.compose.material3.Button(
+                            onClick = {
+                                showSafetySheet = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Llamar", color = androidx.compose.ui.graphics.Color.White)
+                        }
+                    }
+                }
             }
         }
+
     }
 }
 

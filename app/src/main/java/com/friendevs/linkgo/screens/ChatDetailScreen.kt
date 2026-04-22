@@ -2,6 +2,7 @@ package com.friendevs.linkgo.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,7 +56,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 
 @Composable
-fun ChatDetailScreen(navController: NavController) {
+fun ChatDetailScreen(navController: NavController, sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
     val bgTop = MaterialTheme.colorScheme.background
     val bgBottom = MaterialTheme.colorScheme.surface
     val bubbleMe = MaterialTheme.colorScheme.primary
@@ -100,74 +101,86 @@ fun ChatDetailScreen(navController: NavController) {
 
     var input by remember { mutableStateOf("") }
 
-    Scaffold(
-        topBar = {
-            ChatDetailTopBar(
-                name = "Sofia",
-                status = "En línea",
-                onBack = { navController.popBackStack() },
-                onVideoCall = { /* TODO */ },
-                onCall = { /* TODO */ },
-                dividerColor = divider
-            )
-        },
-        bottomBar = {
-            ChatDetailInputBar(
-                value = input,
-                onValueChange = { input = it },
-                onSend = {
-                    val trimmed = input.trim()
-                    if (trimmed.isNotEmpty()) {
-                        messages.add(
-                            ChatMessage(
-                                id = System.currentTimeMillis().toString(),
-                                fromMe = true,
-                                kind = MessageKind.Text(trimmed),
-                                time = ""
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold    (
+            topBar = {
+                ChatDetailTopBar(
+                    name = "Sofia",
+                    status = "En línea",
+                    onBack = { navController.popBackStack() },
+                    onVideoCall = { /* TODO */ },
+                    onCall = { /* TODO */ },
+                    dividerColor = divider
+                )
+            },
+            bottomBar = {
+                ChatDetailInputBar(
+                    value = input,
+                    onValueChange = { input = it },
+                    onSend = {
+                        val trimmed = input.trim()
+                        if (trimmed.isNotEmpty()) {
+                            messages.add(
+                                ChatMessage(
+                                    id = System.currentTimeMillis().toString(),
+                                    fromMe = true,
+                                    kind = MessageKind.Text(trimmed),
+                                    time = ""
+                                )
                             )
-                        )
-                        input = ""
-                    }
-                },
-                dividerColor = divider
-            )
-        },
-        containerColor = Color.Transparent,
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
-                .padding(padding)
-        ) {
-            LazyColumn(
+                            input = ""
+                        }
+                    },
+                    dividerColor = divider
+                )
+            },
+            containerColor = Color.Transparent,
+        ) { padding ->
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(top = 12.dp, bottom = 90.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                    .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
+                    .padding(padding)
             ) {
-                item { DayChip(text = "HOY") }
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(top = 12.dp, bottom = 90.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    item { DayChip(text = "HOY") }
 
-                items(messages, key = { it.id }) { msg ->
-                    when (val k = msg.kind) {
-                        is MessageKind.Text -> MessageBubble(
-                            fromMe = msg.fromMe,
-                            text = k.value,
-                            time = msg.time,
-                            bubbleMe = bubbleMe,
-                            bubbleOther = bubbleOther
-                        )
+                    items(messages, key = { it.id }) { msg ->
+                        when (val k = msg.kind) {
+                            is MessageKind.Text -> MessageBubble(
+                                fromMe = msg.fromMe,
+                                text = k.value,
+                                time = msg.time,
+                                bubbleMe = bubbleMe,
+                                bubbleOther = bubbleOther
+                            )
 
-                        is MessageKind.ImageWithCaption -> ImageMessageBubble(
-                            fromMe = msg.fromMe,
-                            imageUrl = k.imageUrl,
-                            caption = k.caption,
-                            time = msg.time,
-                            bubbleOther = bubbleOther
-                        )
+                            is MessageKind.ImageWithCaption -> ImageMessageBubble(
+                                fromMe = msg.fromMe,
+                                imageUrl = k.imageUrl,
+                                caption = k.caption,
+                                time = msg.time,
+                                bubbleOther = bubbleOther
+                            )
+                        }
                     }
                 }
+            }
+        }
+
+        if (sensorViewModel.proximityNear){
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black).clickable(enabled = false){}) {
+                Text(text = "Modo Privado",
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.Center),
+                style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }

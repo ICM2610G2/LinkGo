@@ -77,11 +77,19 @@ class MapViewModel : ViewModel() {
 @Composable
 fun MapScreen(
     navController: NavController,
-    viewModel: MapViewModel = viewModel()
+    viewModel: MapViewModel = viewModel(),
+    sensorViewModel: com.friendevs.linkgo.model.SensorViewModel
 ) {
     val context = LocalContext.current
     val state = viewModel.state
     val cameraPositionState = rememberCameraPositionState()
+
+    val darkStyle = remember {
+        com.google.android.gms.maps.model.MapStyleOptions.loadRawResourceStyle(
+            context,
+            com.friendevs.linkgo.R.raw.map_style_dark
+        )
+    }
 
     val fusedLocationClient = remember {
         LocationServices.getFusedLocationProviderClient(context)
@@ -157,8 +165,11 @@ fun MapScreen(
                 modifier = Modifier.matchParentSize(),
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(
-                    isMyLocationEnabled = state.locationPermissionGranted
-                )
+                    isMyLocationEnabled = state.locationPermissionGranted,
+                    mapStyleOptions = if (sensorViewModel.isDarkBySensor) darkStyle else null,
+                    mapType = MapType.NORMAL
+                ),
+                uiSettings = MapUiSettings(myLocationButtonEnabled = true)
             ) {
                 state.hotspots.forEach { hotspot ->
                     Marker(
