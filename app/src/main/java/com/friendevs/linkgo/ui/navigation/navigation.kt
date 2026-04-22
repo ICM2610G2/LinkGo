@@ -134,7 +134,6 @@ fun BottomNavBar(navController: NavController, currentRoute: String?) {
     ) {
         val navItems = listOf(
             Screens.Map to Pair(Icons.Default.LocationOn, "MAP"),
-            Screens.Feed to Pair(Icons.Default.Favorite, "FEED"),
             Screens.Chat to Pair(Icons.Default.Send, "CHAT"),
             Screens.Hotspots to Pair(Icons.Default.Home, "HOTSPOTS"),
             Screens.Profile to Pair(Icons.Default.Person, "PROFILE")
