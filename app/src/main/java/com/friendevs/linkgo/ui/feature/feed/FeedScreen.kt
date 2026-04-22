@@ -50,13 +50,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.friendevs.linkgo.R
 import com.friendevs.linkgo.domain.model.Contacts
 import com.friendevs.linkgo.ui.navigation.Screens
 
 @Composable
-fun FeedScreen(navController: NavController) {
+fun FeedScreen(navController: NavController, sensorViewModel: com.friendevs.linkgo.model.SensorViewModel = viewModel()) {
+    androidx.compose.runtime.LaunchedEffect(sensorViewModel.shakeDetected) {
+        if (sensorViewModel.shakeDetected) {
+            println("Recargando Feed")
+            sensorViewModel.resetShake()
+        }
+    }
+
     Scaffold(
         topBar = { TopBarFeed() }
     )

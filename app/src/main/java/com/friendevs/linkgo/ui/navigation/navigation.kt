@@ -1,29 +1,19 @@
 package com.friendevs.linkgo.ui.navigation
 
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import com.friendevs.linkgo.ui.feature.map.AddHotspotScreen
 import com.friendevs.linkgo.ui.feature.chat.ChatDetailScreen
 import com.friendevs.linkgo.ui.feature.chat.ChatScreen
@@ -38,23 +28,15 @@ import com.friendevs.linkgo.ui.feature.auth.RegisterScreen
 import com.friendevs.linkgo.ui.feature.auth.RegisterViewModel
 
 enum class Screens {
-    Map,
-    Feed,
-    Chat,
-    ChatDetail,
-    Hotspots,
-    Profile,
-    MeetUp,
-    login,
-    register,
-
-    AddHotspot
+    Map, Feed, Chat, ChatDetail, Hotspots, Profile, MeetUp, login, register, AddHotspot
 }
 
 @Composable
 @ExperimentalMaterial3Api
-fun Navigation() {
+fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
     val navController = rememberNavController()
+    val sheetState = rememberModalBottomSheetState()
+    var showSafetySheet by remember { mutableStateOf(false) }
 
     val loginViewModel: LoginViewModel = viewModel()
     val registerViewModel: RegisterViewModel = viewModel()
@@ -63,13 +45,16 @@ fun Navigation() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     val bottomBarRoutes = listOf(
-        Screens.Map.name,
-        Screens.Feed.name,
-        Screens.Chat.name,
-        Screens.Hotspots.name,
-        Screens.Profile.name,
-        Screens.AddHotspot.name
+        Screens.Map.name, Screens.Feed.name, Screens.Chat.name,
+        Screens.Hotspots.name, Screens.Profile.name, Screens.AddHotspot.name
     )
+
+    LaunchedEffect(sensorViewModel.shakeDetected) {
+        if (sensorViewModel.shakeDetected) {
+            showSafetySheet = true
+            sensorViewModel.resetShake()
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -77,41 +62,65 @@ fun Navigation() {
                 BottomNavBar(navController = navController, currentRoute = currentRoute)
             }
         }
-    ) { innerPadding -> 
-        NavHost(
-            navController = navController,
-            startDestination = Screens.login.name,
-            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
-        ) {
-            composable(route = Screens.login.name) {
-                LoginScreen(navController, loginViewModel)
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            NavHost(
+                navController = navController,
+                startDestination = Screens.login.name,
+                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+            ) {
+                composable(route = Screens.login.name) { LoginScreen(navController, loginViewModel) }
+                composable(route = Screens.register.name) { RegisterScreen(navController, registerViewModel) }
+                composable(route = Screens.Map.name) { MapScreen(navController, sensorViewModel = sensorViewModel) }
+                composable(route = Screens.Feed.name) { FeedScreen(navController, sensorViewModel = sensorViewModel) }
+                composable(route = Screens.Chat.name) { ChatScreen(navController) }
+                composable(route = Screens.ChatDetail.name) { ChatDetailScreen(navController, sensorViewModel = sensorViewModel) }
+                composable(route = Screens.Hotspots.name) { HotspotsScreen(navController) }
+                composable(route = Screens.Profile.name) { ProfileScreen(navController) }
+                composable(route = Screens.MeetUp.name) { MeetUpsScreen(navController) }
+                composable(route = Screens.AddHotspot.name) { AddHotspotScreen(navController) }
             }
-            composable(route = Screens.register.name) {
-                RegisterScreen(navController, registerViewModel)
-            }
-            composable(route = Screens.Map.name) {
-                MapScreen(navController)
-            }
-            composable(route = Screens.Feed.name) {
-                FeedScreen(navController)
-            }
-            composable(route = Screens.Chat.name) {
-                ChatScreen(navController)
-            }
-            composable(route = Screens.ChatDetail.name) {
-                ChatDetailScreen(navController)
-            }
-            composable(route = Screens.Hotspots.name) {
-                HotspotsScreen(navController)
-            }
-            composable(route = Screens.Profile.name) {
-                ProfileScreen(navController)
-            }
-            composable(route = Screens.MeetUp.name) {
-                MeetUpsScreen(navController)
-            }
-            composable(route = Screens.AddHotspot.name) {
-                AddHotspotScreen(navController)
+
+            if (showSafetySheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showSafetySheet = false },
+                    sheetState = sheetState,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    dragHandle = { BottomSheetDefaults.DragHandle() }
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Maniobra brusca detectada",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "¿Deseas llamar a emergencias?",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Button(
+                            onClick = { showSafetySheet = false },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Llamar", color = androidx.compose.ui.graphics.Color.White)
+                        }
+                    }
+                }
             }
         }
     }
@@ -138,9 +147,7 @@ fun BottomNavBar(navController: NavController, currentRoute: String?) {
                 onClick = {
                     if (currentRoute != screen.name) {
                         navController.navigate(screen.name) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
