@@ -84,7 +84,12 @@ fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = vi
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = { UserTopAppBar(navController) }
+            topBar = {
+                UserTopAppBar(
+                    navController = navController,
+                    onSettingsClick = { showEditBox = true }
+                )
+            }
         ) { paddingValues ->
 
             LazyColumn(
@@ -291,7 +296,7 @@ fun StatItem(number: String, label: String) {
 
 @Composable
 @ExperimentalMaterial3Api
-fun UserTopAppBar(navController: NavHostController) {
+fun UserTopAppBar(navController: NavHostController, onSettingsClick: () -> Unit) {
     TopAppBar(
         title = {
             Text(
@@ -302,7 +307,7 @@ fun UserTopAppBar(navController: NavHostController) {
         },
         navigationIcon = {
             IconButton(
-                onClick = { },
+                onClick = onSettingsClick,
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
                     .size(40.dp)
