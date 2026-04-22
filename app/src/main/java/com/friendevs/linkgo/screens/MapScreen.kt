@@ -1,219 +1,244 @@
 package com.friendevs.linkgo.screens
 
-import androidx.compose.foundation.Image
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Looper
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.BottomStart
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.friendevs.linkgo.R
+import com.friendevs.linkgo.data.loadHotspots
+import com.friendevs.linkgo.model.Hotspot
 import com.friendevs.linkgo.navigation.Screens
+import com.google.android.gms.location.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
+import kotlinx.coroutines.launch
 
-@Composable
-fun MapScreen(navController: NavController) {
+data class MapState(
+    val locationPermissionGranted: Boolean = false,
+    val showDialog: Boolean = true,
+    val firstLocationUpdate: Boolean = true,
+    val hotspots: List<Hotspot> = emptyList()
+)
 
-    Scaffold(
-    ) { paddingValues ->
+class MapViewModel : ViewModel() {
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize(),
-            // Esto hace que pueda poner la imagen hasta arriba pero el padding de abajo si lo usa
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                // Filtro
+    var state by mutableStateOf(MapState())
+        private set
 
-
-                Image(
-                    painter = painterResource(R.drawable.mapa),
-                    contentDescription = "mapa",
-                    modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-
-                Row( // Filtros
-                    modifier = Modifier
-                        .padding(top = 65.dp).align(Alignment.TopCenter),
-                ) {
-
-                    Text(
-                        text = "All",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.primary, CircleShape)
-                            .padding(horizontal = 20.dp, vertical = 8.dp)
-                            .clickable(onClick = {})
-                            .width(62.dp)
-                    )
-
-
-                    Text(
-                        text = "Chats",
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surface, CircleShape)
-                            .padding(horizontal = 20.dp, vertical = 8.dp)
-                            .clickable(onClick = {})
-                            .width(62.dp)
-                    )
-
-                    Text(
-                        text = "Circulos",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surface, CircleShape)
-                            .padding(horizontal = 20.dp, vertical = 8.dp)
-                            .clickable(onClick = {})
-                            .width(62.dp)
-
-
-                    )
-                }
-
-                Button(
-                    onClick = { navController.navigate(Screens.MeetUp.name) },
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(start = 20.dp, bottom = 35.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onBackground
-                    )
-                ) {
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Meet up"
-                        )
-                        Text(
-                            text = "Meet Up"
-                        )
-                    }
-                }
-
-                Button(onClick = {},
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 35.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary)
-                )
-                {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = "Location"
-                    )
-                }
-                 // Personas
-                Image(
-                    painter = painterResource(R.drawable.andres),
-                    contentDescription = "Personita",
-                    contentScale = ContentScale.Crop, // la foto llena el círculo
-                    modifier = Modifier
-                        .offset(x = -65.dp, y = -185.dp)
-                        .size(60.dp) // tamaño del círculo
-                        .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
-                )
-
-                Image(
-                    painter = painterResource(R.drawable.lucho),
-                    contentDescription = "Personita",
-                    contentScale = ContentScale.Crop, // la foto llena el círculo
-                    modifier = Modifier
-                        .offset(x = 120.dp, y = 50.dp)
-                        .size(60.dp) // tamaño del círculo
-                        .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
-                )
-
-                Image(
-                    painter = painterResource(R.drawable.nico1),
-                    contentDescription = "Personita",
-                    contentScale = ContentScale.Crop, // la foto llena el círculo
-                    modifier = Modifier
-                        .offset(x = 30.dp, y = 0.dp)
-                        .size(60.dp) // tamaño del círculo
-                        .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
-                )
-
-                Image(
-                    painter = painterResource(R.drawable.nico2),
-                    contentDescription = "Personita",
-                    contentScale = ContentScale.Crop, // la foto llena el círculo
-                    modifier = Modifier
-                        .offset(x = 40.dp, y = -130.dp)
-                        .size(60.dp) // tamaño del círculo
-                        .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
-                )
-
-                Image(
-                    painter = painterResource(R.drawable.juanes),
-                    contentDescription = "Personita",
-                    contentScale = ContentScale.Crop, // la foto llena el círculo
-                    modifier = Modifier
-                        .offset(x = -90.dp, y = 210.dp)
-                        .size(60.dp) // tamaño del círculo
-                        .clip(CircleShape) // Lo hace redondo
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) //bordecito morado
-                )
-
-            }
-
-
-
-
+    fun loadHotSpots(context: android.content.Context) {
+        viewModelScope.launch {
+            state = state.copy(hotspots = loadHotspots(context))
         }
-
     }
 
+    fun onPermissionResult(granted: Boolean) {
+        state = state.copy(
+            locationPermissionGranted = granted,
+            showDialog = false
+        )
+    }
+
+    fun onPermissionAlreadyGranted() {
+        state = state.copy(
+            locationPermissionGranted = true,
+            showDialog = false
+        )
+    }
+
+    fun onFirstLocationUpdated() {
+        state = state.copy(firstLocationUpdate = false)
+    }
+
+    fun onCenterLocation() {
+        state = state.copy(firstLocationUpdate = true)
+    }
 }
 
 @Composable
-@Preview
-fun mostrarMap() {
-    MapScreen(navController = NavController(LocalContext.current))
+fun MapScreen(
+    navController: NavController,
+    viewModel: MapViewModel = viewModel()
+) {
+    val context = LocalContext.current
+    val state = viewModel.state
+    val cameraPositionState = rememberCameraPositionState()
+
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        viewModel.onPermissionResult(isGranted)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadHotSpots(context)
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            viewModel.onPermissionAlreadyGranted()
+        }
+    }
+
+    LaunchedEffect(state.locationPermissionGranted) {
+        if (state.locationPermissionGranted) {
+            val locationRequest = LocationRequest.Builder(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                30000
+            ).build()
+
+            val locationCallback = object : LocationCallback() {
+                override fun onLocationResult(result: LocationResult) {
+                    val location = result.lastLocation ?: return
+                    val userLatLng = LatLng(location.latitude, location.longitude)
+
+                    if (state.firstLocationUpdate) {
+                        cameraPositionState.move(
+                            CameraUpdateFactory.newLatLngZoom(userLatLng, 15f)
+                        )
+                        viewModel.onFirstLocationUpdated()
+                    }
+                }
+            }
+
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        }
+    }
+
+    LaunchedEffect(state.firstLocationUpdate) {
+        if (state.firstLocationUpdate && state.locationPermissionGranted) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    val userLatLng = LatLng(it.latitude, it.longitude)
+                    cameraPositionState.move(
+                        CameraUpdateFactory.newLatLngZoom(userLatLng, 15f)
+                    )
+                    viewModel.onFirstLocationUpdated()
+                }
+            }
+        }
+    }
+
+    Scaffold { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            GoogleMap(
+                modifier = Modifier.matchParentSize(),
+                cameraPositionState = cameraPositionState,
+                properties = MapProperties(
+                    isMyLocationEnabled = state.locationPermissionGranted
+                )
+            ) {
+                state.hotspots.forEach { hotspot ->
+                    Marker(
+                        state = MarkerState(position = LatLng(hotspot.lat, hotspot.lng)),
+                        title = hotspot.name,
+                        snippet = hotspot.address
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .padding(top = 65.dp)
+                    .align(Alignment.TopCenter),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "All",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .clickable { }
+                )
+                Text(
+                    text = "Chats",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.surface, CircleShape)
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .clickable { }
+                )
+                Text(
+                    text = "Círculos",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.surface, CircleShape)
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .clickable { }
+                )
+            }
+
+            Button(
+                onClick = { navController.navigate(Screens.MeetUp.name) },
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 20.dp, bottom = 35.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Person, contentDescription = null)
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text("Meet Up")
+                }
+            }
+
+            Button(
+                onClick = { viewModel.onCenterLocation() },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = 35.dp)
+            ) {
+                Icon(Icons.Default.LocationOn, contentDescription = null)
+            }
+
+            if (state.showDialog && !state.locationPermissionGranted) {
+                AlertDialog(
+                    onDismissRequest = {},
+                    confirmButton = {
+                        Button(onClick = {
+                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }) {
+                            Text("Permitir")
+                        }
+                    },
+                    title = { Text("Ubicación requerida") },
+                    text = {
+                        Text("Necesitamos tu ubicación en tiempo real para mostrarte en el mapa y ver hotspots cercanos.")
+                    }
+                )
+            }
+        }
+    }
 }

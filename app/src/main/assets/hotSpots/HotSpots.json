@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "name": "Parque de la 93",
+    "lat": 4.6760,
+    "lng": -74.0486,
+    "fotos": 12,
+    "url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+    "address": "Chapinero, Bogotá"
+  },
+  {
+    "id": 2,
+    "name": "Zona T",
+    "lat": 4.6692,
+    "lng": -74.0535,
+    "fotos": 8,
+    "url": "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+    "address": "Zona Rosa"
+  },
+  {
+    "id": 3,
+    "name": "Monserrate",
+    "lat": 4.6057,
+    "lng": -74.0555,
+    "fotos": 20,
+    "url": "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6",
+    "address": "Centro"
+  },
+  {
+    "id": 4,
+    "name": "Parque Simón Bolívar",
+    "lat": 4.6584,
+    "lng": -74.0936,
+    "fotos": 35,
+    "url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644",
+    "address": "Teusaquillo"
+  },
+  {
+    "id": 5,
+    "name": "Plaza de Bolívar",
+    "lat": 4.5981,
+    "lng": -74.0758,
+    "fotos": 18,
+    "url": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+    "address": "Centro Histórico"
+  }
+]

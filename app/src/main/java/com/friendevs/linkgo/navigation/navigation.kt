@@ -24,6 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.friendevs.linkgo.screens.AddHotspotScreen
 import com.friendevs.linkgo.screens.ChatDetailScreen
 import com.friendevs.linkgo.screens.ChatScreen
 import com.friendevs.linkgo.screens.FeedScreen
@@ -46,6 +47,7 @@ enum class Screens {
     MeetUp,
     login,
     register
+    AddHotspot
 }
 
 @Composable
@@ -64,7 +66,8 @@ fun Navigation() {
         Screens.Feed.name,
         Screens.Chat.name,
         Screens.Hotspots.name,
-        Screens.Profile.name
+        Screens.Profile.name,
+        Screens.AddHotspot.name
     )
 
     Scaffold(
@@ -105,6 +108,9 @@ fun Navigation() {
             }
             composable(route = Screens.MeetUp.name) {
                 MeetUpsScreen(navController)
+            }
+            composable(route = Screens.AddHotspot.name) {
+                AddHotspotScreen(navController)
             }
         }
     }

@@ -13,6 +13,8 @@ import com.google.firebase.database.FirebaseDatabase
 
 lateinit var auth: FirebaseAuth
 lateinit var database: FirebaseDatabase
+import com.google.android.libraries.places.api.Places
+
 @ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,14 +22,15 @@ class MainActivity : ComponentActivity() {
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
         enableEdgeToEdge()
-        setContent {
-            LinkGoTheme(darkTheme = true,dynamicColor = false) {
 
-                    Navigation()
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, "AIzaSyBmmbtudP67euznyKoTbqUXFojfu_HpmSw")
+        }
+
+        setContent {
+            LinkGoTheme(darkTheme = true, dynamicColor = false) {
+                Navigation()
             }
         }
     }
 }
-
-
-
