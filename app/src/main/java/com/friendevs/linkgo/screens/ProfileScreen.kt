@@ -1,4 +1,5 @@
 package com.friendevs.linkgo.screens
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,8 +22,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
@@ -40,12 +43,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,136 +63,235 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.friendevs.linkgo.R
-import com.friendevs.linkgo.navigation.Screens
 import coil3.compose.AsyncImage
+import com.friendevs.linkgo.R
+import com.friendevs.linkgo.model.MyUser
+import com.friendevs.linkgo.model.ProfileViewModel
+import com.friendevs.linkgo.navigation.Screens
+import com.google.firebase.auth.FirebaseAuth
 import kotlin.collections.emptyList
 
 @Composable
 @ExperimentalMaterial3Api
-fun ProfileScreen(navController: NavHostController) {
-    Scaffold(
-        topBar = {UserTopAppBar()}
-    ) { paddingValues ->
+fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = viewModel()) {
+    val user by model.userState.collectAsState()
+    var showEditBox by remember { mutableStateOf(false) }
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(25.dp)
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = { UserTopAppBar(navController) }
+        ) { paddingValues ->
 
-        ) {
-            item(){ ProfileHeader() }
-            item() {ProfileEditRow()}
-            item() { StatsRow() }
-            item() {MomentsGrid()}
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = paddingValues.calculateTopPadding())
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(25.dp)
+            ) {
+                item { ProfileHeader("${user.name} ${user.lastName}".trim(), user.username, user.email) }
+                item { ProfileEditRow(onEditClick = { showEditBox = true }) }
+                item { StatsRow(user) }
+                item { MomentsGrid() }
+            }
+        }
 
+        if (showEditBox) {
+            EditProfileBox(
+                user = user,
+                model = model,
+                onDismiss = { showEditBox = false }
+            )
         }
     }
 }
 
 @Composable
-fun ProfileEditRow(){
-        Row(
-            Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
+fun EditProfileBox(user: MyUser, model: ProfileViewModel, onDismiss: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.6f))
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
-            Button(
-                onClick = {},
-                Modifier.width(270.dp).height(50.dp),
-                shape = RoundedCornerShape(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    MaterialTheme
-                        .colorScheme.primary
-                )
-            )
-            {
-                Text("Editar Perfil", fontWeight = FontWeight.Bold, fontSize =18.sp)
-            }
-
-            Button(
-                onClick = {},
-                modifier = Modifier.size(50.dp),
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                contentPadding = PaddingValues(0.dp)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = "Share",
-                    tint = MaterialTheme.colorScheme.onPrimary
+                Text(
+                    "Editar Perfil", 
+                    style = MaterialTheme.typography.titleLarge, 
+                    fontWeight = FontWeight.Bold
                 )
+
+                OutlinedTextField(
+                    value = user.name,
+                    onValueChange = { model.updateName(it) },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = user.lastName,
+                    onValueChange = { model.updateLastName(it) },
+                    label = { Text("Apellido") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = user.username,
+                    onValueChange = { model.updateUsername(it) },
+                    label = { Text("Usuario") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = user.age,
+                    onValueChange = {
+                        if (it.all { char -> char.isDigit() }) {
+                            model.updateAge(it)
+                        }
+                    },
+                    label = { Text("Edad") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancelar")
+                    }
+                    Button(
+                        onClick = {
+                            model.saveProfile()
+                            onDismiss()
+                        },
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Text("Guardar")
+                    }
+                }
             }
         }
-
+    }
 }
 
 @Composable
-fun ProfileHeader() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun ProfileEditRow(onEditClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Button(
+            onClick = onEditClick,
+            Modifier.width(270.dp).height(50.dp),
+            shape = RoundedCornerShape(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text("Editar Perfil", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        }
 
+        Button(
+            onClick = {},
+            modifier = Modifier.size(50.dp),
+            shape = CircleShape,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Share,
+                contentDescription = "Share",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@Composable
+fun ProfileHeader(fullName: String, username: String, email: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         ProfileAvatar()
-        Text("Nicolas", style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold, fontSize = 30.sp)
+        Text(
+            fullName, style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold, fontSize = 30.sp
+        )
 
         Text(
-            "@ndgc",
+            username,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary, fontSize = 18.sp
         )
+        
+        if (email.isNotEmpty()) {
+            Text(
+                email,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray, fontSize = 14.sp
+            )
+        }
     }
 }
 
 @Composable
-fun StatsRow() {
+fun StatsRow(user: MyUser) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-
-        StatItem("3", "Fotos")
-        StatItem("12", "Amigos")
-        StatItem("14", "Circulos")
+        StatItem(user.postsCount, "Fotos")
+        StatItem(user.friendsCount, "Amigos")
+        StatItem(user.circlesCount, "Circulos")
     }
 }
 
 @Composable
 fun StatItem(number: String, label: String) {
-        Card(
-            modifier = Modifier.width(100.dp).height(80.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors
-                (MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+    Card(
+        modifier = Modifier.width(100.dp).height(80.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+    ) {
+        Column(
+            Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                Text(
-                    number, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary,
-                    fontSize = 25.sp
-                )
-                Text(label, color = MaterialTheme.colorScheme.secondary)
-            }
+            Text(
+                number, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary,
+                fontSize = 25.sp
+            )
+            Text(label, color = MaterialTheme.colorScheme.secondary)
         }
-
+    }
 }
-
 
 @Composable
 @ExperimentalMaterial3Api
-fun UserTopAppBar() {
+fun UserTopAppBar(navController: NavHostController) {
     TopAppBar(
         title = {
             Text(
@@ -192,10 +300,7 @@ fun UserTopAppBar() {
                 fontWeight = FontWeight.Bold,
             )
         },
-
-        /*
         navigationIcon = {
-
             IconButton(
                 onClick = { },
                 modifier = Modifier
@@ -207,16 +312,20 @@ fun UserTopAppBar() {
                     )
             ) {
                 Icon(
-                    imageVector = Icons.Default.Menu,
+                    imageVector = Icons.Default.Settings,
                     contentDescription = "Menu",
                     modifier = Modifier.size(20.dp)
                 )
             }
-        },*/
-        //Icono de settings
+        },
         actions = {
             IconButton(
-                onClick = { },
+                onClick = {
+                    FirebaseAuth.getInstance().signOut()
+                    navController.navigate(Screens.login.name) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
                 modifier = Modifier
                     .padding(end = 12.dp)
                     .size(40.dp)
@@ -226,29 +335,25 @@ fun UserTopAppBar() {
                     )
             ) {
                 Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Buscar",
+                    imageVector = Icons.Default.ExitToApp,
+                    contentDescription = "Cerrar sesión",
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp)
                 )
             }
         },
-
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
 
-
 @Composable
 fun ProfileAvatar() {
-
     Box(
         contentAlignment = Alignment.BottomEnd,
         modifier = Modifier.size(140.dp)
     ) {
-
         Image(
             painter = painterResource(R.drawable.nico1), // tu imagen
             contentDescription = null,
@@ -285,25 +390,19 @@ fun MomentsGrid() {
     Row(
         Modifier.fillMaxWidth().padding(13.dp),
         horizontalArrangement = Arrangement.Start,
-
-    ){
-
+    ) {
         Text("Mis Momentos", style = MaterialTheme.typography.titleMedium)
-
     }
 
     val context = LocalContext.current
 
     val imagePaths = remember {
         val files = context.assets.list("selfpics")
-
         if (files != null) {
             files.map { "selfpics/$it" }
-        }else{
+        } else {
             emptyList()
         }
-
-
     }
 
     LazyVerticalGrid(
