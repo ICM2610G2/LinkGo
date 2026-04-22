@@ -23,9 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.friendevs.linkgo.auth
+import com.friendevs.linkgo.model.MyUser
 import com.friendevs.linkgo.navigation.Screens
 import com.friendevs.linkgo.shared.validEmailAddress
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -124,13 +126,27 @@ fun RegisterScreen(navController: NavHostController, model: RegisterViewModel) {
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 val user = auth.currentUser
-                                val profileUpdates = UserProfileChangeRequest.Builder()
-                                    .setDisplayName("${state.nombre} ${state.apellido}")
-                                    .build()
-                                user?.updateProfile(profileUpdates)?.addOnCompleteListener { updateTask ->
-                                    if (updateTask.isSuccessful) {
-                                        navController.navigate(Screens.Map.name) {
-                                            popUpTo(Screens.login.name) { inclusive = true }
+                                val database = FirebaseDatabase.getInstance()
+                                val myRef = database.getReference("users/${user?.uid}")
+                                val myUser = MyUser(
+                                    name = state.nombre,
+                                    lastName = state.apellido,
+                                    email = state.email,
+                                    username = "",
+                                    age = "",
+                                    friendsCount = "0",
+                                    postsCount = "0",
+                                    circlesCount = "0"
+                                )
+                                myRef.setValue(myUser).addOnCompleteListener { dbTask ->
+                                    val profileUpdates = UserProfileChangeRequest.Builder()
+                                        .setDisplayName("${state.nombre} ${state.apellido}")
+                                        .build()
+                                    user?.updateProfile(profileUpdates)?.addOnCompleteListener { updateTask ->
+                                        if (updateTask.isSuccessful) {
+                                            navController.navigate(Screens.Map.name) {
+                                                popUpTo(Screens.login.name) { inclusive = true }        
+                                            }
                                         }
                                     }
                                 }
