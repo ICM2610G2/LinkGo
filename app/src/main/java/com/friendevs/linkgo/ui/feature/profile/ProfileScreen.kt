@@ -1,5 +1,6 @@
 package com.friendevs.linkgo.ui.feature.profile
 
+import android.Manifest
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,13 +25,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -41,8 +38,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -71,16 +66,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.friendevs.linkgo.R
-import com.friendevs.linkgo.ui.feature.profile.ProfileViewModel
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.collections.emptyList
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.AlertDialog
 
 @Composable
 @ExperimentalMaterial3Api
 fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = viewModel()) {
     val user by model.userState.collectAsState()
     var showEditBox by remember { mutableStateOf(false) }
+    val cameraPermission = Manifest.permission.CAMERA
+    val galleryPermission = Manifest.permission.READ_EXTERNAL_STORAGE
+    var showOptions by remember {mutableStateOf(false)}
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -203,7 +205,9 @@ fun ProfileEditRow(onEditClick: () -> Unit) {
     ) {
         Button(
             onClick = onEditClick,
-            Modifier.width(270.dp).height(50.dp),
+            Modifier
+                .width(270.dp)
+                .height(50.dp),
             shape = RoundedCornerShape(50.dp),
             colors = ButtonDefaults.buttonColors(
                 MaterialTheme.colorScheme.primary
@@ -223,7 +227,7 @@ fun ProfileEditRow(onEditClick: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Default.Share,
-                contentDescription = "Share",
+                contentDescription = "Compartir",
                 tint = MaterialTheme.colorScheme.onPrimary
             )
         }
@@ -270,7 +274,9 @@ fun StatsRow(user: User) {
 @Composable
 fun StatItem(number: String, label: String) {
     Card(
-        modifier = Modifier.width(100.dp).height(80.dp),
+        modifier = Modifier
+            .width(100.dp)
+            .height(80.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
@@ -355,7 +361,7 @@ fun ProfileAvatar() {
         modifier = Modifier.size(140.dp)
     ) {
         Image(
-            painter = painterResource(R.drawable.nico1), // tu imagen
+            painter = painterResource(R.drawable.nico1),
             contentDescription = null,
             modifier = Modifier
                 .size(120.dp)
@@ -387,14 +393,111 @@ fun ProfileAvatar() {
 
 @Composable
 fun MomentsGrid() {
-    Row(
-        Modifier.fillMaxWidth().padding(13.dp),
-        horizontalArrangement = Arrangement.Start,
-    ) {
-        Text("Mis Momentos", style = MaterialTheme.typography.titleMedium)
-    }
 
     val context = LocalContext.current
+    var showOptions by remember { mutableStateOf(false) }
+    val cameraPermission = Manifest.permission.CAMERA
+
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                cameraPermission
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+
+        }
+    }
+
+    val requestCameraPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasCameraPermission = granted
+        if (granted) cameraLauncher.launch(null)
+    }
+
+
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(13.dp),
+        horizontalArrangement = Arrangement.Start,
+    ) {
+        Text(
+            "Mis Momentos",
+            Modifier.weight(70f),
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Button(
+            onClick = { showOptions = true },
+            modifier = Modifier
+                .size(30.dp)
+                .weight(30f),
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Agregar foto")
+        }
+    }
+
+
+    if (showOptions) {
+        AlertDialog(
+            onDismissRequest = { showOptions = false },
+            title = { Text("Seleccionar opción") },
+            text = {
+                Column {
+
+                    TextButton(
+                        onClick = {
+                            showOptions = false
+                            if (hasCameraPermission) {
+                                cameraLauncher.launch(null)
+                            } else {
+                                requestCameraPermission.launch(cameraPermission)
+                            }
+                        }
+                    ) {
+                        Text("Tomar foto")
+                    }
+
+
+                    TextButton(
+                        onClick = {
+                            showOptions = false
+                            galleryLauncher.launch("image/*")
+                        }
+                    ) {
+                        Text("Elegir de galería")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showOptions = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
 
     val imagePaths = remember {
         val files = context.assets.list("selfpics")
@@ -424,3 +527,5 @@ fun MomentsGrid() {
         }
     }
 }
+
+
