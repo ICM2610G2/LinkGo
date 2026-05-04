@@ -83,14 +83,15 @@ fun MapScreen(
         if (state.locationPermissionGranted) {
             val locationRequest = LocationRequest.Builder(
                 Priority.PRIORITY_HIGH_ACCURACY,
-                30000
-            ).build()
+                Long.MAX_VALUE
+            )
+                .setMinUpdateDistanceMeters(30f)
+                .build()
 
             val locationCallback = object : LocationCallback() {
                 override fun onLocationResult(result: LocationResult) {
                     val location = result.lastLocation ?: return
                     val userLatLng = LatLng(location.latitude, location.longitude)
-                    viewModel.onUserLocationUpdate(userLatLng)
 
                     if (state.firstLocationUpdate) {
                         cameraPositionState.move(
