@@ -38,8 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,56 +48,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
-fun ChatDetailScreen(navController: NavController, sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
+fun ChatDetailScreen(
+    navController: NavController,
+    groupId: String,
+    sensorViewModel: com.friendevs.linkgo.model.SensorViewModel,
+    viewModel: ChatDetailViewModel = viewModel()
+) {
     val bgTop = MaterialTheme.colorScheme.background
     val bgBottom = MaterialTheme.colorScheme.surface
     val bubbleMe = MaterialTheme.colorScheme.primary
     val bubbleOther = MaterialTheme.colorScheme.surfaceVariant
     val divider = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
 
-    val messages = remember {
-        mutableStateListOf(
-            ChatMessage(
-                id = "1",
-                fromMe = false,
-                kind = MessageKind.Text(
-                    "¡Hola! ¿Seguimos quedando en el parque para la sesión de fotos del atardecer?"
-                ),
-                time = "14:02"
-            ),
-            ChatMessage(
-                id = "2",
-                fromMe = true,
-                kind = MessageKind.Text(
-                    "¡Sí! Ya estoy aquí. La iluminación es absolutamente perfecta ahora mismo. 📸"
-                ),
-                time = "14:05"
-            ),
-            ChatMessage(
-                id = "3",
-                fromMe = false,
-                kind = MessageKind.ImageWithCaption(
-                    imageUrl = "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80",
-                    caption = "¡Vaya, tienes razón! Mira esto desde mi balcón."
-                ),
-                time = "14:06"
-            ),
-            ChatMessage(
-                id = "4",
-                fromMe = true,
-                kind = MessageKind.Text("jajajaj"),
-                time = ""
-            ),
-        )
+    LaunchedEffect(groupId) {
+        viewModel.start(groupId)
     }
+
+    val messages = viewModel.messages
+    val currentUid = viewModel.currentUid
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     var input by remember { mutableStateOf("") }
 
@@ -120,14 +99,7 @@ fun ChatDetailScreen(navController: NavController, sensorViewModel: com.friendev
                     onSend = {
                         val trimmed = input.trim()
                         if (trimmed.isNotEmpty()) {
-                            messages.add(
-                                ChatMessage(
-                                    id = System.currentTimeMillis().toString(),
-                                    fromMe = true,
-                                    kind = MessageKind.Text(trimmed),
-                                    time = ""
-                                )
-                            )
+                            viewModel.send(trimmed)
                             input = ""
                         }
                     },
@@ -152,23 +124,13 @@ fun ChatDetailScreen(navController: NavController, sensorViewModel: com.friendev
                     item { DayChip(text = "HOY") }
 
                     items(messages, key = { it.id }) { msg ->
-                        when (val k = msg.kind) {
-                            is MessageKind.Text -> MessageBubble(
-                                fromMe = msg.fromMe,
-                                text = k.value,
-                                time = msg.time,
-                                bubbleMe = bubbleMe,
-                                bubbleOther = bubbleOther
-                            )
-
-                            is MessageKind.ImageWithCaption -> ImageMessageBubble(
-                                fromMe = msg.fromMe,
-                                imageUrl = k.imageUrl,
-                                caption = k.caption,
-                                time = msg.time,
-                                bubbleOther = bubbleOther
-                            )
-                        }
+                        MessageBubble(
+                            fromMe = msg.senderId == currentUid,
+                            text = msg.text,
+                            time = if (msg.timestamp > 0) timeFormat.format(Date(msg.timestamp)) else "",
+                            bubbleMe = bubbleMe,
+                            bubbleOther = bubbleOther
+                        )
                     }
                 }
             }
@@ -184,18 +146,6 @@ fun ChatDetailScreen(navController: NavController, sensorViewModel: com.friendev
             }
         }
     }
-}
-
-private data class ChatMessage(
-    val id: String,
-    val fromMe: Boolean,
-    val kind: MessageKind,
-    val time: String
-)
-
-private sealed class MessageKind {
-    data class Text(val value: String) : MessageKind()
-    data class ImageWithCaption(val imageUrl: String, val caption: String) : MessageKind()
 }
 
 @Composable
@@ -323,56 +273,6 @@ private fun MessageBubble(
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodyMedium
                 )
-            }
-            if (time.isNotBlank()) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = time,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ImageMessageBubble(
-    fromMe: Boolean,
-    imageUrl: String,
-    caption: String,
-    time: String,
-    bubbleOther: Color,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (fromMe) Arrangement.End else Arrangement.Start,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        if (!fromMe) {
-            MiniAvatar()
-            Spacer(Modifier.width(8.dp))
-        }
-
-        Column(horizontalAlignment = if (fromMe) Alignment.End else Alignment.Start) {
-            Surface(color = bubbleOther, shape = RoundedCornerShape(18.dp)) {
-                Column(modifier = Modifier.padding(10.dp)) {
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = "Shared photo",
-                        modifier = Modifier
-                            .size(width = 240.dp, height = 150.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        text = caption,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
             }
             if (time.isNotBlank()) {
                 Spacer(Modifier.height(4.dp))

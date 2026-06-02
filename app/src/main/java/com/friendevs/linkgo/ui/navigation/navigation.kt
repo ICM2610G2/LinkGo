@@ -13,7 +13,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.friendevs.linkgo.ui.feature.map.AddHotspotScreen
 import com.friendevs.linkgo.ui.feature.chat.ChatDetailScreen
 import com.friendevs.linkgo.ui.feature.chat.ChatScreen
@@ -78,7 +80,13 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
                 composable(route = Screens.Map.name) { MapScreen(navController, sensorViewModel = sensorViewModel) }
                 composable(route = Screens.Feed.name) { FeedScreen(navController, sensorViewModel = sensorViewModel) }
                 composable(route = Screens.Chat.name) { ChatScreen(navController) }
-                composable(route = Screens.ChatDetail.name) { ChatDetailScreen(navController, sensorViewModel = sensorViewModel) }
+                composable(
+                    route = "${Screens.ChatDetail.name}/{groupId}",
+                    arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+                    ChatDetailScreen(navController, groupId = groupId, sensorViewModel = sensorViewModel)
+                }
                 composable(route = Screens.Hotspots.name) { HotspotsScreen(navController) }
                 composable(route = Screens.Profile.name) { ProfileScreen(navController) }
                 composable(route = Screens.MeetUp.name) { MeetUpsScreen(navController, mapViewModel = mapViewModel) }

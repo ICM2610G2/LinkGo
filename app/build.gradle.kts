@@ -67,6 +67,7 @@ dependencies {
     implementation("com.google.firebase:firebase-common")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-messaging")
 
     // ----------------------------------------------
 
@@ -88,4 +89,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     // Huella
     implementation("androidx.biometric:biometric:1.2.0-alpha05")
+    // Fragment >=1.3.0 requerido por registerForActivityResult en FragmentActivity
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
 }

@@ -8,5 +8,6 @@ data class User(
     val email: String = "",
     val friendsCount: String = "0",
     val postsCount: String = "0",
-    val circlesCount: String = "0"
+    val circlesCount: String = "0",
+    val fcmToken: String = ""
 )

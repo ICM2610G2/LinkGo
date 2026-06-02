@@ -6,7 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.friendevs.linkgo.data.repository.FirebaseHotspotRepository
+import com.friendevs.linkgo.data.repository.GroupRepository
+import com.friendevs.linkgo.data.repository.LocationRepository
+import com.friendevs.linkgo.domain.model.GroupSummary
 import com.friendevs.linkgo.domain.model.Hotspot
+import com.friendevs.linkgo.domain.model.UserLocation
 import com.friendevs.linkgo.ui.feature.routes.fetchLinkGoRoute
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +28,10 @@ data class MapState(
     val routeEta: String = "",
     val isRouteLoading: Boolean = false,
     val routeError: String? = null,
-    val pendingHotspot: Hotspot? = null
+    val pendingHotspot: Hotspot? = null,
+    val myGroups: List<GroupSummary> = emptyList(),
+    val selectedGroupId: String? = null,
+    val groupMemberLocations: List<UserLocation> = emptyList()
 )
 
 class MapViewModel : ViewModel() {
@@ -32,12 +39,62 @@ class MapViewModel : ViewModel() {
     var state by mutableStateOf(MapState())
         private set
 
+    private val groupRepo = GroupRepository()
+    private val locationRepo = LocationRepository()
+
+    private var myUid: String? = null
+    private var allLocations: Map<String, UserLocation> = emptyMap()
+
     fun loadHotSpots(userId: String) {
         val repo = FirebaseHotspotRepository()
 
         repo.getHotspotsByUser(userId) { hotspots ->
             state = state.copy(hotspots = hotspots)
         }
+    }
+
+    /** Escucha los grupos del usuario y las ubicaciones de todos los usuarios. */
+    fun observeGroupsAndLocations(uid: String) {
+        myUid = uid
+
+        groupRepo.observeMyGroups(uid) { groups ->
+            // selecciona el primer grupo por defecto si aun no hay ninguno
+            val selected = state.selectedGroupId ?: groups.firstOrNull()?.id
+            state = state.copy(myGroups = groups, selectedGroupId = selected)
+            recomputeMemberLocations()
+        }
+
+        locationRepo.observeAllLocations { locations ->
+            allLocations = locations
+            recomputeMemberLocations()
+        }
+    }
+
+    fun selectGroup(groupId: String) {
+        state = state.copy(selectedGroupId = groupId)
+        recomputeMemberLocations()
+    }
+
+    /** Filtra allLocations a los miembros del grupo seleccionado, excluyendo al usuario actual. */
+    private fun recomputeMemberLocations() {
+        val group = state.myGroups.firstOrNull { it.id == state.selectedGroupId }
+        if (group == null) {
+            state = state.copy(groupMemberLocations = emptyList())
+            return
+        }
+
+        val memberUids = group.members.filterValues { it }.keys
+        val locations = memberUids
+            .filter { it != myUid }
+            .mapNotNull { allLocations[it] }
+
+        state = state.copy(groupMemberLocations = locations)
+    }
+
+    /** Escribe la posicion del usuario actual en Realtime Database. */
+    fun publishMyLocation(lat: Double, lng: Double) {
+        val uid = myUid ?: return
+        locationRepo.writeLocation(uid, lat, lng)
     }
 
     fun onPermissionResult(granted: Boolean) {

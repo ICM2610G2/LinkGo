@@ -8,7 +8,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -62,6 +64,7 @@ fun MapScreen(
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
             viewModel.loadHotSpots(userId)
+            viewModel.observeGroupsAndLocations(userId)
         }
         if (ContextCompat.checkSelfPermission(
                 context,
@@ -92,6 +95,9 @@ fun MapScreen(
                 override fun onLocationResult(result: LocationResult) {
                     val location = result.lastLocation ?: return
                     val userLatLng = LatLng(location.latitude, location.longitude)
+
+                    viewModel.onUserLocationUpdate(userLatLng)
+                    viewModel.publishMyLocation(location.latitude, location.longitude)
 
                     if (state.firstLocationUpdate) {
                         cameraPositionState.move(
@@ -153,6 +159,14 @@ fun MapScreen(
                     )
                 }
 
+                state.groupMemberLocations.forEach { member ->
+                    Marker(
+                        state = MarkerState(position = LatLng(member.lat, member.lng)),
+                        title = member.name,
+                        snippet = "Miembro del grupo"
+                    )
+                }
+
                 if (state.routePoints.isNotEmpty()) {
                     Polyline(
                         points = state.routePoints,
@@ -165,26 +179,37 @@ fun MapScreen(
             Row(
                 modifier = Modifier
                     .padding(top = 65.dp)
-                    .align(Alignment.TopCenter),
+                    .align(Alignment.TopCenter)
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "All",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        .padding(horizontal = 20.dp, vertical = 8.dp)
-                        .clickable { }
-                )
-
-                Text(
-                    text = "Círculos",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.surface, CircleShape)
-                        .padding(horizontal = 20.dp, vertical = 8.dp)
-                        .clickable { }
-                )
+                if (state.myGroups.isEmpty()) {
+                    Text(
+                        text = "Sin grupos",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.surface, CircleShape)
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                    )
+                } else {
+                    state.myGroups.forEach { group ->
+                        val selected = group.id == state.selectedGroupId
+                        Text(
+                            text = group.name,
+                            textAlign = TextAlign.Center,
+                            color = if (selected) MaterialTheme.colorScheme.onPrimary
+                            else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .background(
+                                    if (selected) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surface,
+                                    CircleShape
+                                )
+                                .padding(horizontal = 20.dp, vertical = 8.dp)
+                                .clickable { viewModel.selectGroup(group.id) }
+                        )
+                    }
+                }
             }
 
             if (state.isRouteLoading || state.routePoints.isNotEmpty()) {
