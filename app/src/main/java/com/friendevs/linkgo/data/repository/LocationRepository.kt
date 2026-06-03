@@ -16,8 +16,7 @@ class LocationRepository {
             "lat" to lat,
             "lng" to lng,
             "updatedAt" to System.currentTimeMillis(),
-            "name" to (currentUser?.displayName ?: "Usuario"),
-            "profilePhotoUrl" to (currentUser?.photoUrl?.toString() ?: "")
+            "name" to (currentUser?.displayName ?: "Usuario")
         )
         db.child("locations").child(uid).updateChildren(locMap)
         db.child("users").child(uid).child("location").updateChildren(

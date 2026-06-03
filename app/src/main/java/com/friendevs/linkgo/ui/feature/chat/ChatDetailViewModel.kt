@@ -27,6 +27,9 @@ class ChatDetailViewModel : ViewModel() {
 
     val currentUid: String? get() = auth.currentUser?.uid
 
+    var userPhotos by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
+
     private var groupId: String = ""
     private var listener: ValueEventListener? = null
     private var groupListener: ValueEventListener? = null
@@ -40,6 +43,15 @@ class ChatDetailViewModel : ViewModel() {
         this.groupId = groupId
         listener = repo.observeMessages(groupId) { msgs ->
             messages = msgs
+            val newSenderIds = msgs.map { it.senderId }.distinct().filter { it !in userPhotos.keys && it.isNotEmpty() }
+            newSenderIds.forEach { senderId ->
+                db.child("users").child(senderId).child("profilePhotoUrl").get().addOnSuccessListener { snapshot ->
+                    val url = snapshot.getValue(String::class.java)
+                    if (!url.isNullOrEmpty()) {
+                        userPhotos = userPhotos + (senderId to url)
+                    }
+                }
+            }
         }
 
         // Cargar datos del grupo (nombre, código de invitación, descripción)

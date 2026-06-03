@@ -14,5 +14,7 @@ data class FeedPost(
     val lat: Double = 0.0,
     val lng: Double = 0.0,
     val groupId: String = "",
-    val timestamp: Long = 0L
+    val timestamp: Long = 0L,
+    val likesCount: Int = 0,
+    val likedBy: Map<String, Boolean> = emptyMap()
 )

@@ -81,6 +81,12 @@ fun FeedScreen(
         }
     }
 
+    androidx.compose.runtime.LaunchedEffect(state.error) {
+        if (state.error != null) {
+            android.widget.Toast.makeText(context, state.error, android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
     var pendingUri by remember { mutableStateOf<Uri?>(null) }
     var caption by remember { mutableStateOf("") }
     var showCaption by remember { mutableStateOf(false) }
@@ -141,7 +147,13 @@ fun FeedScreen(
                         .then(if (!state.hasRevealed) Modifier.blur(18.dp) else Modifier),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(state.posts) { post -> FeedPostCard(post) }
+                    items(state.posts) { post ->
+                        FeedPostCard(
+                            post = post,
+                            currentUserId = viewModel.currentUserId,
+                            onLikeClick = { viewModel.toggleLike(post.id) }
+                        )
+                    }
                 }
 
                 // Gating estilo BeReal: hasta postear no se revela el feed.
@@ -233,7 +245,7 @@ private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun FeedPostCard(post: FeedPost) {
+private fun FeedPostCard(post: FeedPost, currentUserId: String?, onLikeClick: () -> Unit) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -306,7 +318,7 @@ private fun FeedPostCard(post: FeedPost) {
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 )
             }
-            PostActions()
+            PostActions(post = post, currentUserId = currentUserId, onLikeClick = onLikeClick)
         }
     }
 }
@@ -353,8 +365,8 @@ fun TopBarFeed(onCameraClick: () -> Unit = {}, isUploading: Boolean = false) {
 }
 
 @Composable
-fun PostActions() {
-    var liked by remember { mutableStateOf(false) }
+fun PostActions(post: FeedPost, currentUserId: String?, onLikeClick: () -> Unit) {
+    val liked = currentUserId != null && post.likedBy[currentUserId] == true
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -362,14 +374,21 @@ fun PostActions() {
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { liked = !liked }) {
+        IconButton(onClick = onLikeClick) {
             Icon(
                 imageVector = Icons.Default.Favorite,
                 contentDescription = "Like",
                 tint = if (liked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
             )
         }
-        Text(text = if (liked) "Te gusta" else "Me gusta", fontSize = 14.sp)
+        val likesText = when {
+            post.likesCount == 0 -> "Sé el primero en dar me gusta"
+            post.likesCount == 1 && liked -> "Te gusta"
+            post.likesCount == 1 && !liked -> "1 me gusta"
+            liked -> "A ti y a ${post.likesCount - 1} más les gusta"
+            else -> "${post.likesCount} me gusta"
+        }
+        Text(text = likesText, fontSize = 14.sp)
     }
 }
 

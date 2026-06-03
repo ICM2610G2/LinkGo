@@ -58,6 +58,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import java.text.SimpleDateFormat
 import java.util.Date
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import java.util.Locale
 
 @Composable
@@ -139,7 +141,8 @@ fun ChatDetailScreen(
                             text = msg.text,
                             time = if (msg.timestamp > 0) timeFormat.format(Date(msg.timestamp)) else "",
                             bubbleMe = bubbleMe,
-                            bubbleOther = bubbleOther
+                            bubbleOther = bubbleOther,
+                            senderPhotoUrl = viewModel.userPhotos[msg.senderId]
                         )
                     }
                 }
@@ -274,6 +277,7 @@ private fun MessageBubble(
     time: String,
     bubbleMe: Color,
     bubbleOther: Color,
+    senderPhotoUrl: String? = null
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -281,7 +285,7 @@ private fun MessageBubble(
         verticalAlignment = Alignment.Bottom
     ) {
         if (!fromMe) {
-            MiniAvatar()
+            MiniAvatar(imageUrl = senderPhotoUrl)
             Spacer(Modifier.width(8.dp))
         }
 
@@ -310,7 +314,7 @@ private fun MessageBubble(
 }
 
 @Composable
-private fun MiniAvatar() {
+private fun MiniAvatar(imageUrl: String?) {
     Box(
         modifier = Modifier
             .size(28.dp)
@@ -318,12 +322,21 @@ private fun MiniAvatar() {
             .background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = Icons.Filled.Face,
-            contentDescription = "avatar",
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            modifier = Modifier.size(18.dp)
-        )
+        if (!imageUrl.isNullOrEmpty()) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "avatar",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Filled.Face,
+                contentDescription = "avatar",
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
     }
 }
 
