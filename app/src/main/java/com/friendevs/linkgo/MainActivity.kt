@@ -17,12 +17,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity // Tu import para la huella
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.friendevs.linkgo.model.SensorViewModel // Tus sensores
+import com.friendevs.linkgo.service.FcmTokenManager
 import com.friendevs.linkgo.service.LinkGoMessagingService
 import com.friendevs.linkgo.ui.navigation.Navigation // La ruta nueva de tus compañeros
 import com.friendevs.linkgo.ui.theme.LinkGoTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.messaging.FirebaseMessaging
 import com.google.android.libraries.places.api.Places
 
 lateinit var auth: FirebaseAuth
@@ -51,7 +51,7 @@ class MainActivity : FragmentActivity() { // Mantenemos tu FragmentActivity
 
         LinkGoMessagingService.createChannel(this)
         requestNotificationPermission()
-        registerFcmToken()
+        FcmTokenManager.registerCurrentToken()
 
         setContent {
             val sensorViewModel: SensorViewModel = viewModel()
@@ -93,13 +93,4 @@ class MainActivity : FragmentActivity() { // Mantenemos tu FragmentActivity
         }
     }
 
-    /** Obtiene el token FCM del dispositivo y lo guarda en /users/{uid}/fcmToken. */
-    private fun registerFcmToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) return@addOnCompleteListener
-            val token = task.result ?: return@addOnCompleteListener
-            val uid = auth.currentUser?.uid ?: return@addOnCompleteListener
-            database.reference.child("users").child(uid).child("fcmToken").setValue(token)
-        }
-    }
 }

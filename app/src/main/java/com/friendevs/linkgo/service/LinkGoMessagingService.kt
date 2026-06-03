@@ -10,7 +10,6 @@ import androidx.core.app.NotificationCompat
 import com.friendevs.linkgo.MainActivity
 import com.friendevs.linkgo.R
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -40,9 +39,7 @@ class LinkGoMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        FirebaseDatabase.getInstance().reference
-            .child("users").child(uid).child("fcmToken")
-            .setValue(token)
+        FcmTokenManager.saveToken(uid, token)
     }
 
     // MainActivity esta anotada @ExperimentalMaterial3Api; referenciarla aqui requiere opt-in.
