@@ -107,6 +107,8 @@ fun MapScreen(
             viewModel.onPermissionAlreadyGranted()
         }
     }
+    
+    var isMapLoaded by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.routeError) {
         state.routeError?.let {
@@ -134,9 +136,11 @@ fun MapScreen(
                     viewModel.publishMyLocation(location.latitude, location.longitude)
 
                     if (state.firstLocationUpdate) {
-                        cameraPositionState.move(
-                            CameraUpdateFactory.newLatLngZoom(userLatLng, 17f)
-                        )
+                        if (state.meetupRoutes.isEmpty() && state.routePoints.isEmpty()) {
+                            cameraPositionState.move(
+                                CameraUpdateFactory.newLatLngZoom(userLatLng, 17f)
+                            )
+                        }
                         viewModel.onFirstLocationUpdated()
                     }
                 }
@@ -157,15 +161,53 @@ fun MapScreen(
         )
     }
 
+    LaunchedEffect(state.routePoints, isMapLoaded) {
+        if (isMapLoaded && state.routePoints.isNotEmpty()) {
+            val builder = LatLngBounds.builder()
+            state.routePoints.forEach { builder.include(it) }
+            try {
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngBounds(builder.build(), 140)
+                )
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+    }
+
+    LaunchedEffect(state.meetupRoutes, isMapLoaded) {
+        if (isMapLoaded && state.meetupRoutes.isNotEmpty()) {
+            val builder = LatLngBounds.builder()
+            var hasPoints = false
+            state.meetupRoutes.forEach { route ->
+                route.points.forEach { 
+                    builder.include(it)
+                    hasPoints = true
+                }
+            }
+            if (hasPoints) {
+                try {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngBounds(builder.build(), 140)
+                    )
+                } catch (e: Exception) {
+                    // Ignore
+                }
+            }
+        }
+    }
+
     LaunchedEffect(state.firstLocationUpdate) {
         if (state.firstLocationUpdate && state.locationPermissionGranted) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
                     val userLatLng = LatLng(it.latitude, it.longitude)
                     viewModel.onUserLocationUpdate(userLatLng)
-                    cameraPositionState.move(
-                        CameraUpdateFactory.newLatLngZoom(userLatLng, 17f)
-                    )
+                    if (state.meetupRoutes.isEmpty() && state.routePoints.isEmpty()) {
+                        cameraPositionState.move(
+                            CameraUpdateFactory.newLatLngZoom(userLatLng, 17f)
+                        )
+                    }
                     viewModel.onFirstLocationUpdated()
                 }
             }
@@ -195,6 +237,7 @@ fun MapScreen(
             GoogleMap(
                 modifier = Modifier.matchParentSize(),
                 cameraPositionState = cameraPositionState,
+                onMapLoaded = { isMapLoaded = true },
                 // Sube el logo/legal de Google por encima de las barras del sistema y el nav.
                 contentPadding = PaddingValues(top = statusInsetTop, bottom = bottomBarSpace),
                 properties = MapProperties(
@@ -345,29 +388,49 @@ fun MapScreen(
                 FloatingActionButton(
                     onClick = {
                         val members = state.groupMemberLocations
+                        val myLocation = state.currentUserLocation
+                        val validMembers = if (myLocation != null) {
+                            members.filter { member ->
+                                val results = FloatArray(1)
+                                android.location.Location.distanceBetween(
+                                    myLocation.latitude, myLocation.longitude,
+                                    member.lat, member.lng,
+                                    results
+                                )
+                                results[0] <= 50000f // 50km
+                            }
+                        } else {
+                            members
+                        }
+                        
                         when {
                             members.isEmpty() ->
                                 Toast.makeText(context, "Sin miembros con ubicacion", Toast.LENGTH_SHORT).show()
-                            members.size == 1 -> scope.launch {
+                            validMembers.isEmpty() ->
+                                Toast.makeText(context, "Los miembros están demasiado lejos", Toast.LENGTH_SHORT).show()
+                            validMembers.size == 1 && myLocation == null -> scope.launch {
                                 cameraPositionState.animate(
                                     CameraUpdateFactory.newLatLngZoom(
-                                        LatLng(members[0].lat, members[0].lng), 17f
+                                        LatLng(validMembers[0].lat, validMembers[0].lng), 17f
                                     )
                                 )
                             }
                             else -> scope.launch {
                                 val builder = LatLngBounds.builder()
-                                members.forEach { builder.include(LatLng(it.lat, it.lng)) }
-                                cameraPositionState.animate(
-                                    CameraUpdateFactory.newLatLngBounds(builder.build(), 140)
-                                )
+                                validMembers.forEach { builder.include(LatLng(it.lat, it.lng)) }
+                                myLocation?.let { builder.include(it) }
+                                try {
+                                    cameraPositionState.animate(
+                                        CameraUpdateFactory.newLatLngBounds(builder.build(), 140)
+                                    )
+                                } catch (e: Exception) {}
                             }
                         }
                     },
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.primary
                 ) {
-                    Icon(Icons.Default.Place, contentDescription = "Ver grupo")
+                    Icon(Icons.Default.Person, contentDescription = "Ver grupo")
                 }
 
                 FloatingActionButton(
