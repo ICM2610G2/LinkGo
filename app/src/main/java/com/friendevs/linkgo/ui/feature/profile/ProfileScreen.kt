@@ -87,6 +87,8 @@ fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = vi
     val user by model.userState.collectAsState()
     val profilePhotoUrl by model.profilePhotoUrl.collectAsState()
     val isUploadingProfilePhoto by model.isUploadingProfilePhoto.collectAsState()
+    val circlesCount by model.circlesCount.collectAsState()
+    val friendsCount by model.friendsCount.collectAsState()
     var showEditBox by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -118,7 +120,7 @@ fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = vi
                     )
                 }
                 item { ProfileEditRow(onEditClick = { showEditBox = true }) }
-                item { StatsRow(user) }
+                item { StatsRow(user, circlesCount, friendsCount) }
                 item { MomentsGrid(model = model) }
             }
         }
@@ -290,14 +292,14 @@ fun ProfileHeader(
 }
 
 @Composable
-fun StatsRow(user: User) {
+fun StatsRow(user: User, circlesCount: Int, friendsCount: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         StatItem(user.postsCount, "Fotos")
-        StatItem(user.friendsCount, "Amigos")
-        StatItem(user.circlesCount, "Circulos")
+        StatItem(friendsCount.toString(), "Amigos")
+        StatItem(circlesCount.toString(), "Circulos")
     }
 }
 

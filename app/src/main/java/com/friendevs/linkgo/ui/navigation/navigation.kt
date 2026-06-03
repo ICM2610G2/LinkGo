@@ -74,7 +74,11 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
             NavHost(
                 navController = navController,
                 startDestination = Screens.login.name,
-                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                // El mapa se dibuja full-bleed (bajo el bottom bar); el resto reserva su alto.
+                modifier = Modifier.padding(
+                    bottom = if (currentRoute == Screens.Map.name) 0.dp
+                    else innerPadding.calculateBottomPadding()
+                )
             ) {
                 composable(route = Screens.login.name) { LoginScreen(navController, loginViewModel) }
                 composable(route = Screens.register.name) { RegisterScreen(navController, registerViewModel) }
@@ -108,7 +112,8 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
                     HotspotGalleryScreen(
                         navController = navController,
                         hotspotId = hotspotId,
-                        hotspotName = hotspotName
+                        hotspotName = hotspotName,
+                        mapViewModel = mapViewModel
                     )
                 }
             }
@@ -166,6 +171,7 @@ fun BottomNavBar(navController: NavController, currentRoute: String?) {
     ) {
         val navItems = listOf(
             Screens.Map to Pair(Icons.Default.LocationOn, "MAP"),
+            Screens.Feed to Pair(Icons.Default.List, "FEED"),
             Screens.Chat to Pair(Icons.Default.Send, "CHAT"),
             Screens.Hotspots to Pair(Icons.Default.Home, "HOTSPOTS"),
             Screens.Profile to Pair(Icons.Default.Person, "PROFILE")

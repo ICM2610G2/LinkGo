@@ -37,10 +37,45 @@ class ProfileViewModel : ViewModel() {
     private val _isUploadingProfilePhoto = MutableStateFlow(false)
     val isUploadingProfilePhoto = _isUploadingProfilePhoto.asStateFlow()
 
+    private val _circlesCount = MutableStateFlow(0)
+    val circlesCount = _circlesCount.asStateFlow()
+
+    private val _friendsCount = MutableStateFlow(0)
+    val friendsCount = _friendsCount.asStateFlow()
+
     init {
         loadUser()
         loadMomentPhotos()
         loadProfilePhoto()
+        loadGroupStats()
+    }
+
+    private fun loadGroupStats() {
+        val userId = auth.currentUser?.uid ?: return
+        database.getReference("groups").get()
+            .addOnSuccessListener { snapshot ->
+                var circles = 0
+                val allMembers = mutableSetOf<String>()
+                snapshot.children.forEach { groupSnap ->
+                    val isMember = groupSnap.child("members").child(userId)
+                        .getValue(Boolean::class.java) ?: false
+                    if (isMember) {
+                        circles++
+                        groupSnap.child("members").children.forEach { memberSnap ->
+                            val active = memberSnap.getValue(Boolean::class.java) ?: false
+                            if (active) {
+                                memberSnap.key?.let { allMembers.add(it) }
+                            }
+                        }
+                    }
+                }
+                allMembers.remove(userId) // exclude self
+                _circlesCount.value = circles
+                _friendsCount.value = allMembers.size
+            }
+            .addOnFailureListener {
+                Log.e("ProfileViewModel", "Error loading group stats: ${it.message}")
+            }
     }
 
     private fun loadUser() {

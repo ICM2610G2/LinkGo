@@ -3,5 +3,8 @@
     "allow": [
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Nicolas\\\\OneDrive\\\\Escritorio\\\\Proyectos\\\\Movil\\\\LinkGo\" -Recurse)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

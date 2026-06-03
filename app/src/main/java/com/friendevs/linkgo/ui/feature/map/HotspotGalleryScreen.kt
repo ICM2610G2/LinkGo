@@ -39,7 +39,8 @@ fun HotspotGalleryScreen(
     navController: NavController,
     hotspotId: String,
     hotspotName: String,
-    viewModel: HotspotGalleryViewModel = viewModel()
+    viewModel: HotspotGalleryViewModel = viewModel(),
+    mapViewModel: MapViewModel
 ) {
     val context = LocalContext.current
     val state = viewModel.state
@@ -61,6 +62,19 @@ fun HotspotGalleryScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+                actions = {
+                    TextButton(onClick = {
+                        val hotspot = mapViewModel.state.hotspots.find { it.id == hotspotId }
+                        if (hotspot != null) {
+                            mapViewModel.calculateRouteToHotspot(hotspot)
+                            navController.navigate(com.friendevs.linkgo.ui.navigation.Screens.Map.name) {
+                                popUpTo(com.friendevs.linkgo.ui.navigation.Screens.Map.name) { inclusive = false }
+                            }
+                        }
+                    }) {
+                        Text("Ver ruta", color = MaterialTheme.colorScheme.primary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

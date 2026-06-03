@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -172,7 +173,7 @@ private fun ChatDetailTopBar(
     }
     val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "G"
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -342,59 +343,32 @@ private fun ChatDetailInputBar(
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            FilledIconButton(
-                onClick = { /* TODO: adjuntar */ },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
-            ) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
-            }
-
-            Spacer(Modifier.width(10.dp))
-
             Surface(
                 modifier = Modifier.weight(1f),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                 shape = RoundedCornerShape(22.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextField(
-                        value = value,
-                        onValueChange = onValueChange,
-                        modifier = Modifier.weight(1f),
-                        placeholder = {
-                            Text(
-                                "Escribe un mensaje...",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                            )
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            cursorColor = MaterialTheme.colorScheme.onSurface,
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        maxLines = 3
-                    )
-
-                    IconButton(onClick = { /* TODO: emojis */ }) {
-                        Icon(
-                            imageVector = Icons.Filled.Face,
-                            contentDescription = "Emoji",
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                TextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            "Escribe un mensaje...",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                         )
-                    }
-                }
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        cursorColor = MaterialTheme.colorScheme.onSurface,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    maxLines = 3
+                )
             }
 
             Spacer(Modifier.width(10.dp))

@@ -6,9 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
+import com.friendevs.linkgo.data.repository.FeedRepository
 import com.friendevs.linkgo.data.repository.FirebaseHotspotRepository
 import com.friendevs.linkgo.data.repository.GroupRepository
 import com.friendevs.linkgo.data.repository.LocationRepository
+import com.friendevs.linkgo.domain.model.FeedPost
 import com.friendevs.linkgo.domain.model.GroupSummary
 import com.friendevs.linkgo.domain.model.Hotspot
 import com.friendevs.linkgo.domain.model.UserLocation
@@ -22,6 +24,7 @@ data class MapState(
     val locationPermissionGranted: Boolean = false,
     val showDialog: Boolean = true,
     val firstLocationUpdate: Boolean = true,
+    val allLocations: Map<String, UserLocation> = emptyMap(),
     val hotspots: List<Hotspot> = emptyList(),
     val currentUserLocation: LatLng? = null,
     val routePoints: List<LatLng> = emptyList(),
@@ -35,7 +38,9 @@ data class MapState(
     val selectedGroupId: String? = null,
     val groupMemberLocations: List<UserLocation> = emptyList(),
     val meetupTargetHotspot: Hotspot? = null,
-    val meetupRoutes: List<MemberMeetupRoute> = emptyList()
+    val meetupRoutes: List<MemberMeetupRoute> = emptyList(),
+    val feedPosts: List<FeedPost> = emptyList(),
+    val selectedMemberUidsForMeetup: Set<String> = emptySet()
 )
 
 data class MemberMeetupRoute(
@@ -53,12 +58,23 @@ class MapViewModel : ViewModel() {
 
     private val groupRepo = GroupRepository()
     private val locationRepo = LocationRepository()
+    private val feedRepo = FeedRepository()
 
     private var myUid: String? = null
     private var allLocations: Map<String, UserLocation> = emptyMap()
     private var allHotspots: List<Hotspot> = emptyList()
     private var hotspotsObserved = false
     private var groupsAndLocationsObserved = false
+    private var feedObserved = false
+
+    fun loadFeedPosts() {
+        if (feedObserved) return
+        feedObserved = true
+        feedRepo.observeFeed { posts ->
+            // Solo posts con ubicacion valida para anclarlos en el mapa.
+            state = state.copy(feedPosts = posts.filter { it.lat != 0.0 || it.lng != 0.0 })
+        }
+    }
 
     fun loadHotSpots() {
         if (hotspotsObserved) return
@@ -107,6 +123,7 @@ class MapViewModel : ViewModel() {
             }
 
             allLocations = locations
+            state = state.copy(allLocations = locations)
             Log.d("MapViewModel", "Updated allLocations: now has ${allLocations.size} entries")
             recomputeMemberLocations()
         }
@@ -117,10 +134,27 @@ class MapViewModel : ViewModel() {
             selectedGroupId = groupId,
             meetupTargetHotspot = null,
             meetupRoutes = emptyList(),
-            isMeetupLoading = false
+            isMeetupLoading = false,
+            selectedMemberUidsForMeetup = emptySet()
         )
         recomputeMemberLocations()
         recomputeVisibleHotspots()
+    }
+
+    fun cancelMeetup() {
+        state = state.copy(
+            meetupTargetHotspot = null,
+            meetupRoutes = emptyList(),
+            isMeetupLoading = false
+        )
+    }
+
+    fun toggleMemberForMeetup(uid: String) {
+        val current = state.selectedMemberUidsForMeetup.ifEmpty {
+            state.groupMemberLocations.map { it.uid }.toSet()
+        }
+        val updated = if (uid in current) current - uid else current + uid
+        state = state.copy(selectedMemberUidsForMeetup = updated)
     }
 
       /** Filtra allLocations a los miembros del grupo seleccionado, INCLUYENDO al usuario actual si tiene ubicación. */
@@ -192,7 +226,7 @@ class MapViewModel : ViewModel() {
      fun selectedGroupMembersForMeetup(): List<UserLocation> =
          state.groupMemberLocations
 
-     fun startMeetupToRandomHotspot() {
+     fun startMeetupToNearestHotspot() {
          val selectedGroup = state.myGroups.firstOrNull { it.id == state.selectedGroupId }
          if (selectedGroup == null) {
              state = state.copy(routeError = "Selecciona un grupo para iniciar el MeetUp")
@@ -204,9 +238,10 @@ class MapViewModel : ViewModel() {
              return
          }
 
-         // Construir lista mutable y garantizar que el usuario actual esté con
-         // sus coordenadas GPS frescas (evita usar datos obsoletos/corruptos de Firebase).
-         val members = state.groupMemberLocations.toMutableList()
+         val selectedUids = state.selectedMemberUidsForMeetup.ifEmpty {
+             state.groupMemberLocations.map { it.uid }.toSet()
+         }
+         val members = state.groupMemberLocations.filter { it.uid in selectedUids }.toMutableList()
          val myUidSnapshot = myUid
          val myLocSnapshot = state.currentUserLocation
          if (myUidSnapshot != null && myLocSnapshot != null) {
@@ -226,7 +261,16 @@ class MapViewModel : ViewModel() {
              return
          }
 
-        val targetHotspot = state.hotspots.random()
+        // Hotspot mas cercano: minimiza la distancia media (Haversine) a todos los miembros.
+        val targetHotspot = state.hotspots.minByOrNull { hotspot ->
+            members.map { member ->
+                val result = FloatArray(1)
+                android.location.Location.distanceBetween(
+                    member.lat, member.lng, hotspot.lat, hotspot.lng, result
+                )
+                result[0]
+            }.average()
+        } ?: state.hotspots.first()
         val destination = LatLng(targetHotspot.lat, targetHotspot.lng)
 
         viewModelScope.launch {
@@ -354,7 +398,7 @@ class MapViewModel : ViewModel() {
         )
     }
 
-    fun pickRandomHotspot() {
-        startMeetupToRandomHotspot()
+    fun pickNearestHotspot() {
+        startMeetupToNearestHotspot()
     }
 }
