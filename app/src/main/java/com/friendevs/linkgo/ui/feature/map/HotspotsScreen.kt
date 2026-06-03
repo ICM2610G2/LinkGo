@@ -10,34 +10,24 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.friendevs.linkgo.data.repository.FirebaseHotspotRepository
-import com.friendevs.linkgo.domain.model.Hotspot
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HotspotsScreen(navController: NavController) {
-    val repository = remember { FirebaseHotspotRepository() }
-    var hotspots by remember { mutableStateOf<List<Hotspot>>(emptyList()) }
+fun HotspotsScreen(navController: NavController, mapViewModel: MapViewModel) {
+    val state = mapViewModel.state
 
     LaunchedEffect(Unit) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
-            repository.getHotspotsByUser(userId) { list ->
-                hotspots = list
-            }
-        } else {
-            hotspots = emptyList()
+            mapViewModel.loadHotSpots()
+            mapViewModel.observeGroupsAndLocations(userId)
         }
     }
 
@@ -53,7 +43,7 @@ fun HotspotsScreen(navController: NavController) {
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(hotspots) { hotspot ->
+            items(state.hotspots) { hotspot ->
                 HotspotCard(hotspot = hotspot)
             }
         }

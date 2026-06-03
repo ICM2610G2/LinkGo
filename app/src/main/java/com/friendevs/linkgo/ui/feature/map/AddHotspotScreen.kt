@@ -1,6 +1,5 @@
 package com.friendevs.linkgo.ui.feature.map
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,26 +13,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.friendevs.linkgo.domain.model.Hotspot
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.net.FetchPlaceRequest
-import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
-import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.compose.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddHotspotScreen(
     navController: NavController,
+    mapViewModel: MapViewModel,
     viewModel: AddHotspotViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -98,6 +88,17 @@ fun AddHotspotScreen(
                 singleLine = true
             )
 
+            val selectedGroupName = mapViewModel.state.myGroups
+                .firstOrNull { it.id == mapViewModel.state.selectedGroupId }
+                ?.name
+
+            Text(
+                text = selectedGroupName?.let { "Grupo activo: $it" }
+                    ?: "No hay grupo activo seleccionado",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+
             state.suggestions.forEach { (placeId, description) ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -144,7 +145,7 @@ fun AddHotspotScreen(
                 }
 
                 Button(
-                    onClick = { viewModel.saveHotspot(context) },
+                    onClick = { viewModel.saveHotspot(mapViewModel.state.selectedGroupId) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),

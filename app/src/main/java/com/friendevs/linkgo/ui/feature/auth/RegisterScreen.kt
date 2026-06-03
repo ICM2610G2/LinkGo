@@ -103,6 +103,7 @@ fun RegisterScreen(navController: NavHostController, model: RegisterViewModel) {
                                 val user = auth.currentUser
                                 val database = FirebaseDatabase.getInstance()
                                 val myRef = database.getReference("users/${user?.uid}")
+                                val locationsRef = database.getReference("locations/${user?.uid}")
                                 val myUser = User(
                                     name = state.nombre,
                                     lastName = state.apellido,
@@ -114,6 +115,12 @@ fun RegisterScreen(navController: NavHostController, model: RegisterViewModel) {
                                     circlesCount = "0"
                                 )
                                 myRef.setValue(myUser).addOnCompleteListener { dbTask ->
+                                    locationsRef.updateChildren(
+                                        mapOf(
+                                            "name" to "${state.nombre} ${state.apellido}".trim(),
+                                            "profilePhotoUrl" to ""
+                                        )
+                                    )
                                     val profileUpdates = UserProfileChangeRequest.Builder()
                                         .setDisplayName("${state.nombre} ${state.apellido}")
                                         .build()

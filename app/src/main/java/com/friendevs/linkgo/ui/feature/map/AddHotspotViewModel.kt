@@ -1,6 +1,5 @@
 package com.friendevs.linkgo.ui.feature.map
 
-import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -83,9 +82,15 @@ class AddHotspotViewModel : ViewModel() {
         }
     }
 
-    fun saveHotspot(context: Context) {
+    fun saveHotspot(groupId: String?) {
         val latlng = state.selectedLatLng ?: return
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val selectedGroupId = groupId?.takeIf { it.isNotBlank() }
+        if (selectedGroupId == null) {
+            state = state.copy(errorMessage = "Selecciona un grupo activo antes de agregar hotspot")
+            return
+        }
+
         val newHotspot = Hotspot(
             id = "",
             name = state.selectedName,
@@ -93,11 +98,13 @@ class AddHotspotViewModel : ViewModel() {
             lng = latlng.longitude,
             fotos = 0,
             url = "",
-            address = state.selectedAddress
+            address = state.selectedAddress,
+            groupId = selectedGroupId,
+            creatorId = userId
         )
         val repo = FirebaseHotspotRepository()
 
-        repo.saveHotspot(userId, newHotspot)
+        repo.saveHotspot(userId, selectedGroupId, newHotspot)
         state = state.copy(hotspotSaved = true)
     }
 

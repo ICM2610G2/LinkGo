@@ -77,7 +77,9 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
             ) {
                 composable(route = Screens.login.name) { LoginScreen(navController, loginViewModel) }
                 composable(route = Screens.register.name) { RegisterScreen(navController, registerViewModel) }
-                composable(route = Screens.Map.name) { MapScreen(navController, sensorViewModel = sensorViewModel) }
+                composable(route = Screens.Map.name) {
+                    MapScreen(navController, viewModel = mapViewModel, sensorViewModel = sensorViewModel)
+                }
                 composable(route = Screens.Feed.name) { FeedScreen(navController, sensorViewModel = sensorViewModel) }
                 composable(route = Screens.Chat.name) { ChatScreen(navController) }
                 composable(
@@ -87,10 +89,12 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
                     val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
                     ChatDetailScreen(navController, groupId = groupId, sensorViewModel = sensorViewModel)
                 }
-                composable(route = Screens.Hotspots.name) { HotspotsScreen(navController) }
+                composable(route = Screens.Hotspots.name) { HotspotsScreen(navController, mapViewModel = mapViewModel) }
                 composable(route = Screens.Profile.name) { ProfileScreen(navController) }
                 composable(route = Screens.MeetUp.name) { MeetUpsScreen(navController, mapViewModel = mapViewModel) }
-                composable(route = Screens.AddHotspot.name) { AddHotspotScreen(navController) }
+                composable(route = Screens.AddHotspot.name) {
+                    AddHotspotScreen(navController, mapViewModel = mapViewModel)
+                }
             }
 
             if (showSafetySheet) {

@@ -5,31 +5,52 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.friendevs.linkgo.data.repository.ChatRepository
+import com.friendevs.linkgo.domain.model.GroupSummary
 import com.friendevs.linkgo.domain.model.Message
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class ChatDetailViewModel : ViewModel() {
 
     private val repo = ChatRepository()
     private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseDatabase.getInstance().reference
 
     var messages by mutableStateOf<List<Message>>(emptyList())
+        private set
+
+    var group by mutableStateOf<GroupSummary?>(null)
         private set
 
     val currentUid: String? get() = auth.currentUser?.uid
 
     private var groupId: String = ""
     private var listener: ValueEventListener? = null
+    private var groupListener: ValueEventListener? = null
 
     fun start(groupId: String) {
         if (this.groupId == groupId && listener != null) return
         // limpiar listener previo si cambia el grupo
         listener?.let { repo.removeMessagesListener(this.groupId, it) }
+        groupListener?.let { db.child("groups").child(this.groupId).removeEventListener(it) }
+
         this.groupId = groupId
         listener = repo.observeMessages(groupId) { msgs ->
             messages = msgs
         }
+
+        // Cargar datos del grupo (nombre, código de invitación, descripción)
+        val gl = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                group = snapshot.getValue(GroupSummary::class.java)
+            }
+            override fun onCancelled(error: DatabaseError) {}
+        }
+        db.child("groups").child(groupId).addValueEventListener(gl)
+        groupListener = gl
     }
 
     fun send(text: String) {
@@ -52,5 +73,6 @@ class ChatDetailViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         listener?.let { repo.removeMessagesListener(groupId, it) }
+        groupListener?.let { db.child("groups").child(groupId).removeEventListener(it) }
     }
 }

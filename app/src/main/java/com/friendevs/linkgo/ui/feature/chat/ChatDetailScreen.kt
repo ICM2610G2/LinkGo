@@ -19,12 +19,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FilledIconButton
@@ -76,19 +78,26 @@ fun ChatDetailScreen(
 
     val messages = viewModel.messages
     val currentUid = viewModel.currentUid
+    val group = viewModel.group
+    val groupName = group?.name?.ifBlank { "Grupo" } ?: "Cargando..."
+    val inviteCode = group?.codigoInvitacion ?: ""
     val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val clipboardManager = LocalClipboardManager.current
 
     var input by remember { mutableStateOf("") }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold    (
+        Scaffold(
             topBar = {
-                ChatDetailTopBar(
-                    name = "Sofia",
-                    status = "En línea",
+                    ChatDetailTopBar(
+                    name = groupName,
+                    inviteCode = inviteCode,
                     onBack = { navController.popBackStack() },
-                    onVideoCall = { /* TODO */ },
-                    onCall = { /* TODO */ },
+                    onCopyCode = {
+                        if (inviteCode.isNotBlank()) {
+                            clipboardManager.setText(AnnotatedString(inviteCode))
+                        }
+                    },
                     dividerColor = divider
                 )
             },
@@ -151,12 +160,18 @@ fun ChatDetailScreen(
 @Composable
 private fun ChatDetailTopBar(
     name: String,
-    status: String,
+    inviteCode: String,
     onBack: () -> Unit,
-    onVideoCall: () -> Unit,
-    onCall: () -> Unit,
+    onCopyCode: () -> Unit,
     dividerColor: Color,
 ) {
+    // generate a deterministic color from the group name
+    val avatarColor = remember(name) {
+        val hue = (name.hashCode().and(0xFF)) / 255f * 360f
+        Color.hsl(hue, 0.45f, 0.50f)
+    }
+    val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "G"
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -172,28 +187,19 @@ private fun ChatDetailTopBar(
                 )
             }
 
+            // Avatar con inicial del grupo
             Box(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(avatarColor),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Face,
-                    contentDescription = "Avatar",
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-                )
-
-                // puntito verde online
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(2.dp)
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.tertiary)
-                        .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
+                Text(
+                    text = initial,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
@@ -208,26 +214,42 @@ private fun ChatDetailTopBar(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = status,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                    style = MaterialTheme.typography.bodySmall
-                )
+                // Código de invitación siempre visible con botón de copiar
+                if (inviteCode.isNotBlank()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable(onClick = onCopyCode)
+                            .wrapContentWidth()
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = "Código: $inviteCode",
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = "copiar",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
             }
 
 
-            IconButton(onClick = onCall) {
-                Icon(
-                    imageVector = Icons.Filled.Call,
-                    contentDescription = "Call",
-                    tint = MaterialTheme.colorScheme.primary
-                )
             }
+
+            Divider(color = dividerColor)
         }
-
-        Divider(color = dividerColor)
     }
-}
 
 @Composable
 private fun DayChip(text: String) {

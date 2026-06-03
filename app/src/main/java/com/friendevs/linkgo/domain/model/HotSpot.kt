@@ -8,5 +8,6 @@ data class Hotspot(
     val fotos: Int = 0,
     val url: String = "",
     val address: String? = null,
+    val groupId: String = "",
     val creatorId: String = ""
 )

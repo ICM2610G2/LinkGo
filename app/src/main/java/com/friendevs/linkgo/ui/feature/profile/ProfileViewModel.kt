@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.friendevs.linkgo.data.repository.LocationRepository
 import com.friendevs.linkgo.domain.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
@@ -18,6 +19,7 @@ class ProfileViewModel : ViewModel() {
     private val database = FirebaseDatabase.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private val storage = FirebaseStorage.getInstance().reference
+    private val locationRepository = LocationRepository()
 
     private val _userState =
         MutableStateFlow(User(name = "", username = "@", age = ""))
@@ -77,7 +79,24 @@ class ProfileViewModel : ViewModel() {
     fun saveProfile() {
         val userId = auth.currentUser?.uid ?: return
         val myRef = database.getReference("users/$userId")
-        myRef.setValue(_userState.value)
+        val profileData = mapOf(
+            "name" to _userState.value.name,
+            "lastName" to _userState.value.lastName,
+            "username" to _userState.value.username,
+            "age" to _userState.value.age,
+            "email" to _userState.value.email,
+            "friendsCount" to _userState.value.friendsCount,
+            "postsCount" to _userState.value.postsCount,
+            "circlesCount" to _userState.value.circlesCount,
+            "fcmToken" to _userState.value.fcmToken,
+            "profilePhotoUrl" to (_profilePhotoUrl.value.ifBlank { _userState.value.profilePhotoUrl })
+        )
+        myRef.updateChildren(profileData)
+        locationRepository.updateLocationProfile(
+            uid = userId,
+            name = _userState.value.name.ifBlank { auth.currentUser?.displayName ?: "Usuario" },
+            profilePhotoUrl = _profilePhotoUrl.value.ifBlank { _userState.value.profilePhotoUrl }
+        )
     }
 
     fun loadMomentPhotos() {
@@ -134,7 +153,14 @@ class ProfileViewModel : ViewModel() {
                     .sortedByDescending { it.name }
                     .firstOrNull()
 
-                _profilePhotoUrl.value = latestPhoto?.downloadUrl?.await()?.toString().orEmpty()
+                val downloadUrl = latestPhoto?.downloadUrl?.await()?.toString().orEmpty()
+                _profilePhotoUrl.value = downloadUrl
+                _userState.update { it.copy(profilePhotoUrl = downloadUrl) }
+                locationRepository.updateLocationProfile(
+                    uid = userId,
+                    name = _userState.value.name.ifBlank { auth.currentUser?.displayName ?: "Usuario" },
+                    profilePhotoUrl = downloadUrl
+                )
             } catch (e: Exception) {
                 _profilePhotoUrl.value = ""
                 Log.e("ProfileViewModel", "Error loading profile photo: ${e.message}")
@@ -151,7 +177,15 @@ class ProfileViewModel : ViewModel() {
             _isUploadingProfilePhoto.value = true
             try {
                 photoRef.putFile(fileUri).await()
-                _profilePhotoUrl.value = photoRef.downloadUrl.await().toString()
+                val downloadUrl = photoRef.downloadUrl.await().toString()
+                _profilePhotoUrl.value = downloadUrl
+                _userState.update { it.copy(profilePhotoUrl = downloadUrl) }
+                database.getReference("users/$userId/profilePhotoUrl").setValue(downloadUrl)
+                locationRepository.updateLocationProfile(
+                    uid = userId,
+                    name = _userState.value.name.ifBlank { auth.currentUser?.displayName ?: "Usuario" },
+                    profilePhotoUrl = downloadUrl
+                )
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error uploading profile photo: ${e.message}")
             } finally {
