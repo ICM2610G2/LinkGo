@@ -38,7 +38,11 @@ enum class Screens {
 
 @Composable
 @ExperimentalMaterial3Api
-fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
+fun Navigation(
+    sensorViewModel: com.friendevs.linkgo.model.SensorViewModel,
+    deepLinkGroupId: String? = null,
+    onDeepLinkConsumed: () -> Unit = {}
+) {
     val navController = rememberNavController()
     val sheetState = rememberModalBottomSheetState()
     var showSafetySheet by remember { mutableStateOf(false) }
@@ -54,6 +58,17 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
         Screens.Map.name, Screens.Feed.name, Screens.Chat.name,
         Screens.Hotspots.name, Screens.Profile.name, Screens.AddHotspot.name
     )
+
+    // Deep-link de notificacion: navega al chat del grupo y consume el evento.
+    LaunchedEffect(deepLinkGroupId) {
+        val gid = deepLinkGroupId
+        if (!gid.isNullOrEmpty()) {
+            navController.navigate("${Screens.ChatDetail.name}/$gid") {
+                launchSingleTop = true
+            }
+            onDeepLinkConsumed()
+        }
+    }
 
     LaunchedEffect(sensorViewModel.shakeDetected) {
         if (sensorViewModel.shakeDetected) {

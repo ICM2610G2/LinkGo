@@ -128,12 +128,25 @@ Navegación centralizada en `ui/navigation/navigation.kt` con un `Screens` enum 
 
 ---
 
-### ❌ Notificaciones Push (FCM) — NO IMPLEMENTADO
+### ✅ Notificaciones Push (FCM) — IMPLEMENTADO
 
-- No existe ninguna clase que extienda `FirebaseMessagingService`.
-- No hay registro de token FCM.
-- No hay creación de `NotificationChannel`.
-- **La dependencia `firebase-messaging` no está en `app/build.gradle.kts`** — tendría que agregarse primero.
+Notificación push a los miembros de un grupo cuando llega un mensaje nuevo al chat.
+
+**Cliente (Android):**
+- Dependencia `firebase-messaging` en `app/build.gradle.kts:70`.
+- `service/LinkGoMessagingService.kt` extiende `FirebaseMessagingService`:
+  - `onMessageReceived` construye la notificación (payload **data-only** → comportamiento uniforme en foreground y background).
+  - `createChannel()` crea el `NotificationChannel` (`IMPORTANCE_HIGH`, Android 8+).
+  - `onNewToken` persiste el token rotado en `/users/{uid}/fcmToken`.
+  - **Deep-link:** la notificación lleva un `PendingIntent` con el `groupId`; al tocarla abre `MainActivity` → enruta a `ChatDetail/{groupId}`.
+- `MainActivity.kt`: registra el token al iniciar (`registerFcmToken`), pide permiso `POST_NOTIFICATIONS` en runtime, y consume el extra de deep-link (`onCreate` + `onNewIntent`).
+- Permiso `POST_NOTIFICATIONS` y `<service>` declarados en `AndroidManifest.xml`.
+
+**Backend (Cloud Function):**
+- `functions/index.js` → `notifyOnNewMessage`: trigger `onValueCreated` sobre `/chats/{groupId}/messages/{messageId}`.
+- Resuelve miembros del grupo (excluye al emisor), recolecta sus `fcmToken` y envía vía `sendEachForMulticast` con payload data-only y prioridad alta.
+
+> ℹ️ Requiere desplegar la function (`firebase deploy --only functions`); necesita plan Blaze.
 
 ---
 
@@ -164,7 +177,7 @@ Navegación centralizada en `ui/navigation/navigation.kt` con un `Screens` enum 
 | Auth (Login / Register / Logout / Sesión) | E2 | ✅ Completo |
 | Chat funcional en tiempo real (Firebase) | E3 | ❌ No implementado |
 | Posición en tiempo real para otros usuarios | E3 | ❌ No implementado |
-| Notificaciones push (FCM) | E3 | ❌ No implementado |
+| Notificaciones push (FCM) | E3 | ✅ Completo |
 | Consumo de REST API | E3 | ✅ Completo |
 | Framework alternativo | E3 | ❌ No aplica en este repo |
 

@@ -44,15 +44,19 @@ exports.notifyOnNewMessage = onValueCreated(
     }
 
     // 3. Envio multicast.
+    // Payload data-only: el cliente (LinkGoMessagingService) construye la
+    // notificacion en onMessageReceived tanto en foreground como background,
+    // garantizando comportamiento uniforme y permitiendo el deep-link al chat.
     const response = await admin.messaging().sendEachForMulticast({
       tokens,
-      notification: {
-        title: senderName,
-        body: text,
-      },
       data: {
+        title: String(senderName),
+        body: String(text),
         groupId: String(groupId),
         type: "chat",
+      },
+      android: {
+        priority: "high",
       },
     });
 
