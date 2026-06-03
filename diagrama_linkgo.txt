@@ -1,0 +1,82 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+' ===== Clases reales (mapeadas desde tu plantilla) =====
+class "Usuario (User)" as Usuario {
+  +name: String
+  +lastName: String
+  +username: String
+  +age: String
+  +email: String
+  +friendsCount: String
+  +postsCount: String
+  +circlesCount: String
+}
+
+class "Grupo (GroupSummary)" as Grupo {
+  +id: String
+  +name: String
+  +descripcion: String
+  +codigoInvitacion: String
+  +members: Map<String, Boolean>
+  +membersCount: Int
+}
+
+class "Ruta (LinkGoRoute)" as Ruta {
+  +points: List<LatLng>
+  +distanceText: String
+  +durationText: String
+}
+
+class Hotspot {
+  +id: String
+  +name: String
+  +lat: Double
+  +lng: Double
+  +fotos: Int
+  +url: String
+  +address: String?
+  +creatorId: String
+}
+
+class LatLng <<external>> {
+  +latitude: Double
+  +longitude: Double
+}
+
+' ===== Clases adicionales reales en tu app =====
+class Contact {
+  +fullName: String
+  +time: String
+  +message: String
+}
+
+class MeetUpContact {
+  +fullName: String
+  +distance: String
+  +location: String
+  +isSelected: Boolean
+}
+
+' ===== Clases de tu diagrama original aun no implementadas =====
+class Notificacion <<pendiente>>
+class Foto <<pendiente>>
+class Chat <<pendiente>>
+class PuntoRuta <<pendiente>>
+class Mensaje <<pendiente>>
+
+' ===== Relaciones reales observadas =====
+Usuario "1" -- "*" Hotspot : creatorId
+Grupo "*" -- "*" Usuario : members[uid]
+Ruta "1" *-- "*" LatLng : points
+
+' ===== Relaciones del template aun pendientes =====
+Usuario "1" -- "*" Foto : pendiente
+Usuario "1" -- "*" Notificacion : pendiente
+Usuario "1" -- "*" Mensaje : pendiente
+Grupo "1" -- "1" Chat : pendiente
+Grupo "1" -- Hotspot : pendiente
+Chat "1" *-- "*" Mensaje : pendiente
+Ruta "1" *-- "*" PuntoRuta : pendiente
+
+@enduml

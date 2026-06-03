@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Nicolas\\\\OneDrive\\\\Escritorio\\\\Proyectos\\\\Movil\\\\LinkGo\" -Recurse)",
+      "Bash(./gradlew.bat :app:assembleDebug -q)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

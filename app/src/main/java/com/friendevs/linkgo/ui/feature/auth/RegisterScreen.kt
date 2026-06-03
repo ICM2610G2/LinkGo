@@ -28,6 +28,7 @@ import androidx.navigation.NavHostController
 import com.friendevs.linkgo.R
 import com.friendevs.linkgo.auth
 import com.friendevs.linkgo.domain.model.User
+import com.friendevs.linkgo.service.FcmTokenManager
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.friendevs.linkgo.util.validEmailAddress
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -103,6 +104,7 @@ fun RegisterScreen(navController: NavHostController, model: RegisterViewModel) {
                                 val user = auth.currentUser
                                 val database = FirebaseDatabase.getInstance()
                                 val myRef = database.getReference("users/${user?.uid}")
+                                val locationsRef = database.getReference("locations/${user?.uid}")
                                 val myUser = User(
                                     name = state.nombre,
                                     lastName = state.apellido,
@@ -114,11 +116,18 @@ fun RegisterScreen(navController: NavHostController, model: RegisterViewModel) {
                                     circlesCount = "0"
                                 )
                                 myRef.setValue(myUser).addOnCompleteListener { dbTask ->
+                                    locationsRef.updateChildren(
+                                        mapOf(
+                                            "name" to "${state.nombre} ${state.apellido}".trim(),
+                                            "profilePhotoUrl" to ""
+                                        )
+                                    )
                                     val profileUpdates = UserProfileChangeRequest.Builder()
                                         .setDisplayName("${state.nombre} ${state.apellido}")
                                         .build()
                                     user?.updateProfile(profileUpdates)?.addOnCompleteListener { updateTask ->
                                         if (updateTask.isSuccessful) {
+                                            FcmTokenManager.registerCurrentToken()
                                             navController.navigate(Screens.Map.name) {
                                                 popUpTo(Screens.login.name) { inclusive = true }        
                                             }

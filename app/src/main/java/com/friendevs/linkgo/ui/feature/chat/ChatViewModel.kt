@@ -1,7 +1,10 @@
 package com.friendevs.linkgo.ui.feature.chat
 
 import androidx.lifecycle.ViewModel
+import com.friendevs.linkgo.data.repository.GroupRepository
 import com.friendevs.linkgo.domain.model.GroupSummary
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -11,48 +14,34 @@ data class ChatState(
 
 class ChatViewModel : ViewModel() {
 
-    private val _state = MutableStateFlow(ChatState(groups = hardcodedGroups()))
+    private val repo = GroupRepository()
+    private val auth = FirebaseAuth.getInstance()
+
+    private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
 
-    fun loadUserGroups() {
-        _state.value = ChatState(groups = hardcodedGroups())
+    private var groupsListener: ValueEventListener? = null
+
+    init {
+        loadUserGroups()
     }
 
-    private fun hardcodedGroups(): List<GroupSummary> {
-        return listOf(
-            GroupSummary(
-                id = "grupo_001",
-                name = "Ruta Norte",
-                descripcion = "Salida dominical",
-                codigoInvitacion = "RUTANORTE123",
-                members = mapOf(
-                    "uid_Andres" to true,
-                    "uid_Oscar" to true,
-                    "uid_Paula" to true
-                )
-            ),
-            GroupSummary(
-                id = "grupo_002",
-                name = "Fotos en la ciudad",
-                descripcion = "Sesion viernes",
-                codigoInvitacion = "FOTOCIUDAD22",
-                members = mapOf(
-                    "uid_Andres" to true,
-                    "uid_Laura" to true
-                )
-            ),
-            GroupSummary(
-                id = "grupo_003",
-                name = "Cafe y codigo",
-                descripcion = "Meet semanal",
-                codigoInvitacion = "CODECAFE09",
-                members = mapOf(
-                    "uid_Andres" to true,
-                    "uid_Juan" to true,
-                    "uid_Maria" to true,
-                    "uid_Carlos" to true
-                )
-            )
-        )
+    fun loadUserGroups() {
+        val uid = auth.currentUser?.uid ?: return
+        groupsListener = repo.observeMyGroups(uid) { groups ->
+            _state.value = ChatState(groups = groups)
+        }
+    }
+
+    fun createGroup(name: String, descripcion: String) {
+        val uid = auth.currentUser?.uid ?: return
+        if (name.isBlank()) return
+        repo.createGroup(uid, name.trim(), descripcion.trim())
+    }
+
+    fun joinGroup(code: String, onResult: (Boolean) -> Unit) {
+        val uid = auth.currentUser?.uid ?: return onResult(false)
+        if (code.isBlank()) return onResult(false)
+        repo.joinByCode(uid, code.trim().uppercase(), onResult)
     }
 }

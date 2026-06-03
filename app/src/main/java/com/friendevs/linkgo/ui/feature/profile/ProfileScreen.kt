@@ -76,6 +76,7 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.friendevs.linkgo.domain.model.User
 import com.friendevs.linkgo.R
+import com.friendevs.linkgo.service.FcmTokenManager
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.firebase.auth.FirebaseAuth
 import java.io.File
@@ -87,6 +88,8 @@ fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = vi
     val user by model.userState.collectAsState()
     val profilePhotoUrl by model.profilePhotoUrl.collectAsState()
     val isUploadingProfilePhoto by model.isUploadingProfilePhoto.collectAsState()
+    val circlesCount by model.circlesCount.collectAsState()
+    val friendsCount by model.friendsCount.collectAsState()
     var showEditBox by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -118,7 +121,7 @@ fun ProfileScreen(navController: NavHostController, model: ProfileViewModel = vi
                     )
                 }
                 item { ProfileEditRow(onEditClick = { showEditBox = true }) }
-                item { StatsRow(user) }
+                item { StatsRow(user, circlesCount, friendsCount) }
                 item { MomentsGrid(model = model) }
             }
         }
@@ -290,14 +293,14 @@ fun ProfileHeader(
 }
 
 @Composable
-fun StatsRow(user: User) {
+fun StatsRow(user: User, circlesCount: Int, friendsCount: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         StatItem(user.postsCount, "Fotos")
-        StatItem(user.friendsCount, "Amigos")
-        StatItem(user.circlesCount, "Circulos")
+        StatItem(friendsCount.toString(), "Amigos")
+        StatItem(circlesCount.toString(), "Circulos")
     }
 }
 
@@ -357,9 +360,11 @@ fun UserTopAppBar(navController: NavHostController, onSettingsClick: () -> Unit)
         actions = {
             IconButton(
                 onClick = {
-                    FirebaseAuth.getInstance().signOut()
-                    navController.navigate(Screens.login.name) {
-                        popUpTo(0) { inclusive = true }
+                    FcmTokenManager.clearCurrentTokenAndDeleteInstallationToken {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate(Screens.login.name) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 },
                 modifier = Modifier
@@ -556,7 +561,9 @@ fun MomentsGrid(model: ProfileViewModel) {
         ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
         if (bitmap != null) {
-            bitmapToCacheUri(context, bitmap, "moment")?.let(model::uploadMomentPhoto)
+            bitmapToCacheUri(context, bitmap, "moment")?.let { uri ->
+                model.uploadMomentPhoto(uri, isFromCamera = true)
+            }
         }
     }
 
@@ -564,7 +571,7 @@ fun MomentsGrid(model: ProfileViewModel) {
         ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
-            model.uploadMomentPhoto(uri)
+            model.uploadMomentPhoto(uri, isFromCamera = false)
         }
     }
 

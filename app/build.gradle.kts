@@ -67,6 +67,7 @@ dependencies {
     implementation("com.google.firebase:firebase-common")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-messaging")
 
     // ----------------------------------------------
 
@@ -74,6 +75,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.google.android.libraries.places:places:3.3.0")
     implementation(libs.googleid)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
@@ -88,4 +91,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     // Huella
     implementation("androidx.biometric:biometric:1.2.0-alpha05")
+    // Fragment >=1.3.0 requerido por registerForActivityResult en FragmentActivity
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
 }

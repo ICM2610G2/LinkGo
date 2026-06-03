@@ -8,36 +8,26 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.friendevs.linkgo.data.repository.FirebaseHotspotRepository
-import com.friendevs.linkgo.domain.model.Hotspot
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HotspotsScreen(navController: NavController) {
-    val repository = remember { FirebaseHotspotRepository() }
-    var hotspots by remember { mutableStateOf<List<Hotspot>>(emptyList()) }
+fun HotspotsScreen(navController: NavController, mapViewModel: MapViewModel) {
+    val state = mapViewModel.state
+    var groupsExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
-            repository.getHotspotsByUser(userId) { list ->
-                hotspots = list
-            }
-        } else {
-            hotspots = emptyList()
+            mapViewModel.loadHotSpots()
+            mapViewModel.observeGroupsAndLocations(userId)
         }
     }
 
@@ -46,15 +36,64 @@ fun HotspotsScreen(navController: NavController) {
         topBar = { topBarHostpots(navController) }
     ) { paddingValues ->
 
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = 8.dp)
         ) {
-            items(hotspots) { hotspot ->
-                HotspotCard(hotspot = hotspot)
+            ExposedDropdownMenuBox(
+                expanded = groupsExpanded,
+                onExpandedChange = { if (state.myGroups.isNotEmpty()) groupsExpanded = !groupsExpanded },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                OutlinedTextField(
+                    value = state.myGroups.firstOrNull { it.id == state.selectedGroupId }?.name
+                        ?: "Sin grupos",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Grupo activo") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = groupsExpanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
+                    singleLine = true
+                )
+                ExposedDropdownMenu(
+                    expanded = groupsExpanded,
+                    onDismissRequest = { groupsExpanded = false }
+                ) {
+                    state.myGroups.forEach { group ->
+                        DropdownMenuItem(
+                            text = { Text(group.name.ifBlank { "Grupo sin nombre" }) },
+                            onClick = {
+                                mapViewModel.selectGroup(group.id)
+                                groupsExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 8.dp)
+            ) {
+                items(state.hotspots) { hotspot ->
+                    HotspotCard(
+                        hotspot = hotspot,
+                        onClick = {
+                            navController.navigate(
+                                "${Screens.HotspotGallery.name}/${hotspot.id}/${
+                                    hotspot.name.replace("/", "-")
+                                }"
+                            )
+                        }
+                    )
+                }
             }
         }
     }
