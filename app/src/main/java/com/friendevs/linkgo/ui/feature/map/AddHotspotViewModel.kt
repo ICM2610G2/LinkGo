@@ -100,7 +100,8 @@ class AddHotspotViewModel : ViewModel() {
             url = "",
             address = state.selectedAddress,
             groupId = selectedGroupId,
-            creatorId = userId
+            creatorId = userId,
+            createdAt = System.currentTimeMillis()
         )
         val repo = FirebaseHotspotRepository()
 

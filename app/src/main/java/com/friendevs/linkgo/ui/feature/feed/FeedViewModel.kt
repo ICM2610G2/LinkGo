@@ -107,6 +107,15 @@ class FeedViewModel : ViewModel() {
         }
     }
 
+    fun toggleLike(postId: String) {
+        viewModelScope.launch {
+            feedRepo.toggleLike(postId)
+        }
+    }
+
+    val currentUserId: String?
+        get() = auth.currentUser?.uid
+
     override fun onCleared() {
         super.onCleared()
         feedListener?.let { feedRepo.removeFeedListener(it) }

@@ -93,4 +93,38 @@ class FeedRepository {
             post != null && post.authorId == uid && post.timestamp >= startOfDay
         }
     }
+
+    fun toggleLike(postId: String) {
+        val uid = auth.currentUser?.uid ?: return
+        val postRef = db.child("feed").child(postId)
+        postRef.runTransaction(object : com.google.firebase.database.Transaction.Handler {
+            override fun doTransaction(currentData: com.google.firebase.database.MutableData): com.google.firebase.database.Transaction.Result {
+                val post = currentData.getValue(FeedPost::class.java)
+                    ?: return com.google.firebase.database.Transaction.success(currentData)
+
+                val likedBy = post.likedBy.toMutableMap()
+                if (likedBy.containsKey(uid)) {
+                    likedBy.remove(uid)
+                } else {
+                    likedBy[uid] = true
+                }
+
+                currentData.value = post.copy(
+                    likedBy = likedBy,
+                    likesCount = likedBy.size
+                )
+                return com.google.firebase.database.Transaction.success(currentData)
+            }
+
+            override fun onComplete(
+                error: DatabaseError?,
+                committed: Boolean,
+                currentData: DataSnapshot?
+            ) {
+                if (error != null) {
+                    Log.e("FeedRepository", "toggleLike failed", error.toException())
+                }
+            }
+        })
+    }
 }

@@ -10,6 +10,7 @@ class FirebaseHotspotRepository {
     fun saveHotspot(userId: String, groupId: String, hotspot: Hotspot) {
         val hotspotRef = db.child("hotspots").push()
 
+        val createdAt = if (hotspot.createdAt > 0L) hotspot.createdAt else System.currentTimeMillis()
         val hotspotMap = mapOf(
             "id" to hotspotRef.key,
             "name" to hotspot.name,
@@ -19,7 +20,8 @@ class FirebaseHotspotRepository {
             "groupId" to groupId,
             "creatorId" to userId,
             "fotos" to hotspot.fotos,
-            "url" to hotspot.url
+            "url" to hotspot.url,
+            "createdAt" to createdAt
         )
 
         hotspotRef.setValue(hotspotMap)
