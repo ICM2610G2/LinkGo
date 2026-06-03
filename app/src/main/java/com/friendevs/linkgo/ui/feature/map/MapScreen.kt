@@ -42,11 +42,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.friendevs.linkgo.domain.model.UserLocation
 import com.friendevs.linkgo.domain.model.Hotspot
 import com.friendevs.linkgo.ui.feature.routes.RouteInfoCard
+import com.friendevs.linkgo.ui.feature.weather.WeatherChip
+import com.friendevs.linkgo.ui.feature.weather.WeatherViewModel
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -73,6 +76,8 @@ fun MapScreen(
     val state = viewModel.state
     val cameraPositionState = rememberCameraPositionState()
     val scope = rememberCoroutineScope()
+    val weatherViewModel: WeatherViewModel = composeViewModel()
+    val weatherState = weatherViewModel.state
 
     val darkStyle = remember {
         com.google.android.gms.maps.model.MapStyleOptions.loadRawResourceStyle(
@@ -135,6 +140,7 @@ fun MapScreen(
 
                     viewModel.onUserLocationUpdate(userLatLng)
                     viewModel.publishMyLocation(location.latitude, location.longitude)
+                    weatherViewModel.loadWeather(location.latitude, location.longitude)
 
                     if (state.firstLocationUpdate) {
                         if (state.meetupRoutes.isEmpty() && state.routePoints.isEmpty()) {
@@ -204,6 +210,7 @@ fun MapScreen(
                 location?.let {
                     val userLatLng = LatLng(it.latitude, it.longitude)
                     viewModel.onUserLocationUpdate(userLatLng)
+                    weatherViewModel.loadWeather(it.latitude, it.longitude)
                     if (state.meetupRoutes.isEmpty() && state.routePoints.isEmpty()) {
                         cameraPositionState.move(
                             CameraUpdateFactory.newLatLngZoom(userLatLng, 17f)
@@ -363,6 +370,14 @@ fun MapScreen(
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                 )
             }
+
+            WeatherChip(
+                state = weatherState,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .statusBarsPadding()
+                    .padding(end = 12.dp, top = 64.dp)
+            )
 
             // Ruta a un hotspot (ETA) cuando esta activa.
             if (state.isRouteLoading || state.routePoints.isNotEmpty()) {
