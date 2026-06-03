@@ -140,24 +140,36 @@ class MapViewModel : ViewModel() {
           Log.d("MapViewModel", "  myUid: $myUid, currentUserLocation: ${state.currentUserLocation}")
           
           val locations = memberUids.mapNotNull { uid ->
-              // Busca en allLocations (ubicaciones en tiempo real de Firebase)
-              val fromFirebase = allLocations[uid]
-              if (fromFirebase != null) {
-                  Log.d("MapViewModel", "  ✓ Found $uid in Firebase: ${fromFirebase.name}")
-                  fromFirebase
-              } else if (uid == myUid && state.currentUserLocation != null) {
-                  // Si es el usuario actual y no está en Firebase, usa su ubicación actual del GPS
-                  Log.d("MapViewModel", "  ✓ Using GPS for current user $uid")
-                  UserLocation(
-                      uid = uid,
-                      name = "Tu",
-                      lat = state.currentUserLocation!!.latitude,
-                      lng = state.currentUserLocation!!.longitude,
-                      profilePhotoUrl = ""
-                  )
+              if (uid == myUid) {
+                  // Usuario actual: siempre usar GPS local (sin lag de Firebase)
+                  val gps = state.currentUserLocation
+                  val fromFirebase = allLocations[uid]
+                  if (gps != null) {
+                      Log.d("MapViewModel", "  ✓ GPS para usuario actual $uid: ${gps.latitude}, ${gps.longitude}")
+                      UserLocation(
+                          uid = uid,
+                          name = fromFirebase?.name ?: "Tu",
+                          lat = gps.latitude,
+                          lng = gps.longitude,
+                          profilePhotoUrl = fromFirebase?.profilePhotoUrl ?: ""
+                      )
+                  } else if (fromFirebase != null) {
+                      Log.d("MapViewModel", "  ✓ Firebase (sin GPS aún) para $uid")
+                      fromFirebase
+                  } else {
+                      Log.d("MapViewModel", "  ✗ Sin ubicación para usuario actual $uid")
+                      null
+                  }
               } else {
-                  Log.d("MapViewModel", "  ✗ No location for $uid (not in Firebase, not current user, or no GPS)")
-                  null
+                  // Otros miembros: solo datos de Firebase
+                  val fromFirebase = allLocations[uid]
+                  if (fromFirebase != null) {
+                      Log.d("MapViewModel", "  ✓ Firebase para $uid: ${fromFirebase.name}")
+                      fromFirebase
+                  } else {
+                      Log.d("MapViewModel", "  ✗ Sin ubicación Firebase para $uid")
+                      null
+                  }
               }
           }
 
@@ -192,7 +204,23 @@ class MapViewModel : ViewModel() {
              return
          }
 
-         val members = state.groupMemberLocations
+         // Construir lista mutable y garantizar que el usuario actual esté con
+         // sus coordenadas GPS frescas (evita usar datos obsoletos/corruptos de Firebase).
+         val members = state.groupMemberLocations.toMutableList()
+         val myUidSnapshot = myUid
+         val myLocSnapshot = state.currentUserLocation
+         if (myUidSnapshot != null && myLocSnapshot != null) {
+             val idx = members.indexOfFirst { it.uid == myUidSnapshot }
+             val myEntry = UserLocation(
+                 uid = myUidSnapshot,
+                 name = members.getOrNull(idx)?.name ?: "Tu",
+                 lat = myLocSnapshot.latitude,
+                 lng = myLocSnapshot.longitude,
+                 profilePhotoUrl = members.getOrNull(idx)?.profilePhotoUrl ?: ""
+             )
+             if (idx >= 0) members[idx] = myEntry else members.add(myEntry)
+         }
+
          if (members.isEmpty()) {
              state = state.copy(routeError = "No hay ubicaciones activas de miembros en este grupo")
              return
@@ -227,6 +255,8 @@ class MapViewModel : ViewModel() {
                             durationText = route.durationText
                         )
                     )
+                }.onFailure { error ->
+                    Log.w("MapViewModel", "Ruta fallida para ${member.name} (${member.uid}): ${error.message}")
                 }
             }
 

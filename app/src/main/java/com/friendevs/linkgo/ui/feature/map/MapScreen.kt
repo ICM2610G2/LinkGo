@@ -99,9 +99,10 @@ fun MapScreen(
         if (state.locationPermissionGranted) {
             val locationRequest = LocationRequest.Builder(
                 Priority.PRIORITY_HIGH_ACCURACY,
-                Long.MAX_VALUE
+                5000L
             )
-                .setMinUpdateDistanceMeters(30f)
+                .setMinUpdateIntervalMillis(2000L)
+                .setMinUpdateDistanceMeters(10f)
                 .build()
 
             val locationCallback = object : LocationCallback() {
@@ -114,7 +115,7 @@ fun MapScreen(
 
                     if (state.firstLocationUpdate) {
                         cameraPositionState.move(
-                            CameraUpdateFactory.newLatLngZoom(userLatLng, 15f)
+                            CameraUpdateFactory.newLatLngZoom(userLatLng, 12f)
                         )
                         viewModel.onFirstLocationUpdated()
                     }
@@ -129,6 +130,13 @@ fun MapScreen(
         }
     }
 
+    LaunchedEffect(state.meetupTargetHotspot) {
+        val target = state.meetupTargetHotspot ?: return@LaunchedEffect
+        cameraPositionState.animate(
+            CameraUpdateFactory.newLatLngZoom(LatLng(target.lat, target.lng), 15f)
+        )
+    }
+
     LaunchedEffect(state.firstLocationUpdate) {
         if (state.firstLocationUpdate && state.locationPermissionGranted) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
@@ -136,7 +144,7 @@ fun MapScreen(
                     val userLatLng = LatLng(it.latitude, it.longitude)
                     viewModel.onUserLocationUpdate(userLatLng)
                     cameraPositionState.move(
-                        CameraUpdateFactory.newLatLngZoom(userLatLng, 15f)
+                        CameraUpdateFactory.newLatLngZoom(userLatLng, 12f)
                     )
                     viewModel.onFirstLocationUpdated()
                 }
@@ -161,10 +169,12 @@ fun MapScreen(
                 uiSettings = MapUiSettings(myLocationButtonEnabled = true)
             ) {
                 state.hotspots.forEach { hotspot ->
+                    val isMeetupTarget = hotspot.id == state.meetupTargetHotspot?.id
                     Marker(
                         state = MarkerState(position = LatLng(hotspot.lat, hotspot.lng)),
-                        title = hotspot.name,
-                        snippet = hotspot.address,
+                        title = if (isMeetupTarget) "\uD83D\uDCCD ${hotspot.name}" else hotspot.name,
+                        snippet = if (isMeetupTarget) "Destino del MeetUp" else hotspot.address,
+                        icon = if (isMeetupTarget) BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE) else null,
                         onClick = {
                             viewModel.calculateRouteToHotspot(hotspot)
                             true
@@ -173,17 +183,23 @@ fun MapScreen(
                 }
 
                 state.groupMemberLocations.forEach { member ->
-                    val meetupRoute = state.meetupRoutes.firstOrNull { it.uid == member.uid }
-                    val markerIcon = rememberGroupMemberMarkerIcon(member)
+                    key(member.uid) {
+                        val meetupRoute = state.meetupRoutes.firstOrNull { it.uid == member.uid }
+                        val markerIcon = rememberGroupMemberMarkerIcon(member)
+                        val markerState = remember { MarkerState(position = LatLng(member.lat, member.lng)) }
+                        LaunchedEffect(member.lat, member.lng) {
+                            markerState.position = LatLng(member.lat, member.lng)
+                        }
 
-                    Marker(
-                        state = MarkerState(position = LatLng(member.lat, member.lng)),
-                        title = member.name,
-                        snippet = meetupRoute?.let {
-                            "${it.distanceText} • ${it.durationText} al meetup"
-                        } ?: "Miembro del grupo",
-                        icon = markerIcon
-                    )
+                        Marker(
+                            state = markerState,
+                            title = member.name,
+                            snippet = meetupRoute?.let {
+                                "${it.distanceText} • ${it.durationText} al meetup"
+                            } ?: "Miembro del grupo",
+                            icon = markerIcon
+                        )
+                    }
                 }
 
                 state.meetupRoutes.forEach { memberRoute ->

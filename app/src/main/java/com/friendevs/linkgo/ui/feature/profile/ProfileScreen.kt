@@ -556,7 +556,9 @@ fun MomentsGrid(model: ProfileViewModel) {
         ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
         if (bitmap != null) {
-            bitmapToCacheUri(context, bitmap, "moment")?.let(model::uploadMomentPhoto)
+            bitmapToCacheUri(context, bitmap, "moment")?.let { uri ->
+                model.uploadMomentPhoto(uri, isFromCamera = true)
+            }
         }
     }
 
@@ -564,7 +566,7 @@ fun MomentsGrid(model: ProfileViewModel) {
         ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
-            model.uploadMomentPhoto(uri)
+            model.uploadMomentPhoto(uri, isFromCamera = false)
         }
     }
 

@@ -17,6 +17,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.friendevs.linkgo.ui.feature.map.AddHotspotScreen
+import com.friendevs.linkgo.ui.feature.map.HotspotGalleryScreen
 import com.friendevs.linkgo.ui.feature.chat.ChatDetailScreen
 import com.friendevs.linkgo.ui.feature.chat.ChatScreen
 import com.friendevs.linkgo.ui.feature.feed.FeedScreen
@@ -32,7 +33,7 @@ import com.friendevs.linkgo.ui.feature.map.MapViewModel
 import kotlinx.coroutines.delay
 
 enum class Screens {
-    Map, Feed, Chat, ChatDetail, Hotspots, Profile, MeetUp, login, register, AddHotspot
+    Map, Feed, Chat, ChatDetail, Hotspots, Profile, MeetUp, login, register, AddHotspot, HotspotGallery
 }
 
 @Composable
@@ -94,6 +95,21 @@ fun Navigation(sensorViewModel: com.friendevs.linkgo.model.SensorViewModel) {
                 composable(route = Screens.MeetUp.name) { MeetUpsScreen(navController, mapViewModel = mapViewModel) }
                 composable(route = Screens.AddHotspot.name) {
                     AddHotspotScreen(navController, mapViewModel = mapViewModel)
+                }
+                composable(
+                    route = "${Screens.HotspotGallery.name}/{hotspotId}/{hotspotName}",
+                    arguments = listOf(
+                        navArgument("hotspotId") { type = NavType.StringType },
+                        navArgument("hotspotName") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val hotspotId = backStackEntry.arguments?.getString("hotspotId") ?: ""
+                    val hotspotName = backStackEntry.arguments?.getString("hotspotName") ?: ""
+                    HotspotGalleryScreen(
+                        navController = navController,
+                        hotspotId = hotspotId,
+                        hotspotName = hotspotName
+                    )
                 }
             }
 
