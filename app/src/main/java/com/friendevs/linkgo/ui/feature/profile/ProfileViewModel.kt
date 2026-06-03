@@ -123,7 +123,6 @@ class ProfileViewModel : ViewModel() {
             "friendsCount" to _userState.value.friendsCount,
             "postsCount" to _userState.value.postsCount,
             "circlesCount" to _userState.value.circlesCount,
-            "fcmToken" to _userState.value.fcmToken,
             "profilePhotoUrl" to (_profilePhotoUrl.value.ifBlank { _userState.value.profilePhotoUrl })
         )
         myRef.updateChildren(profileData)

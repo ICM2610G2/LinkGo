@@ -76,6 +76,7 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.friendevs.linkgo.domain.model.User
 import com.friendevs.linkgo.R
+import com.friendevs.linkgo.service.FcmTokenManager
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.firebase.auth.FirebaseAuth
 import java.io.File
@@ -359,9 +360,11 @@ fun UserTopAppBar(navController: NavHostController, onSettingsClick: () -> Unit)
         actions = {
             IconButton(
                 onClick = {
-                    FirebaseAuth.getInstance().signOut()
-                    navController.navigate(Screens.login.name) {
-                        popUpTo(0) { inclusive = true }
+                    FcmTokenManager.clearCurrentTokenAndDeleteInstallationToken {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate(Screens.login.name) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 },
                 modifier = Modifier

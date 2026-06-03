@@ -22,9 +22,9 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.friendevs.linkgo.R
 import com.friendevs.linkgo.auth
+import com.friendevs.linkgo.service.FcmTokenManager
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.friendevs.linkgo.util.validEmailAddress
-import com.friendevs.linkgo.ui.feature.auth.LoginViewModel
 
 @Composable
 fun LoginScreen(navController: NavHostController, model: LoginViewModel) {
@@ -82,6 +82,7 @@ fun LoginScreen(navController: NavHostController, model: LoginViewModel) {
                     auth.signInWithEmailAndPassword(user.email, user.password)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
+                                FcmTokenManager.registerCurrentToken()
                                 val prefs = context.getSharedPreferences("auth", 0)
                                 prefs.edit().putString("email", user.email).
                                 putString("password", user.password).apply()
@@ -111,6 +112,7 @@ fun LoginScreen(navController: NavHostController, model: LoginViewModel) {
                             auth.signInWithEmailAndPassword(savedEmail, password)
                                 .addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
+                                        FcmTokenManager.registerCurrentToken()
                                         navController.navigate(Screens.Map.name) {
                                             popUpTo(Screens.login.name) { inclusive = true }
                                         }
