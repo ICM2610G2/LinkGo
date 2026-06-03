@@ -25,9 +25,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -113,7 +115,7 @@ fun MapScreen(
             viewModel.onPermissionAlreadyGranted()
         }
     }
-    
+
     var isMapLoaded by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.routeError) {
@@ -139,7 +141,10 @@ fun MapScreen(
                     val userLatLng = LatLng(location.latitude, location.longitude)
 
                     viewModel.onUserLocationUpdate(userLatLng)
-                    viewModel.publishMyLocation(location.latitude, location.longitude)
+                    // No publicar ubicacion si el telefono esta boca abajo (modo privado)
+                    if (!sensorViewModel.isFaceDown) {
+                        viewModel.publishMyLocation(location.latitude, location.longitude)
+                    }
                     weatherViewModel.loadWeather(location.latitude, location.longitude)
 
                     if (state.firstLocationUpdate) {
@@ -187,7 +192,7 @@ fun MapScreen(
             val builder = LatLngBounds.builder()
             var hasPoints = false
             state.meetupRoutes.forEach { route ->
-                route.points.forEach { 
+                route.points.forEach {
                     builder.include(it)
                     hasPoints = true
                 }
@@ -371,6 +376,36 @@ fun MapScreen(
                 )
             }
 
+            // Badge de ubicacion pausada (giroscopio: telefono boca abajo)
+            if (sensorViewModel.isFaceDown) {
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .statusBarsPadding()
+                        .padding(top = 12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "Ubicación pausada",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
+            }
+
             WeatherChip(
                 state = weatherState,
                 modifier = Modifier
@@ -417,7 +452,7 @@ fun MapScreen(
                         } else {
                             members
                         }
-                        
+
                         when {
                             members.isEmpty() ->
                                 Toast.makeText(context, "Sin miembros con ubicacion", Toast.LENGTH_SHORT).show()
@@ -841,16 +876,16 @@ private fun rememberHotspotMarkerIcon(hotspot: Hotspot, isTarget: Boolean): Bitm
     val initial = hotspot.name.firstOrNull()?.uppercaseChar()?.toString() ?: "H"
     val photoUrl = hotspot.url
     val density = LocalDensity.current
-    
+
     val sizePx = with(density) { 56.dp.toPx().toInt() }
-    
+
     val icon by produceState<BitmapDescriptor?>(null, photoUrl, isTarget, sizePx) {
         value = withContext(Dispatchers.IO) {
             val bitmap = if (photoUrl.isNotBlank()) loadBitmapFromUrl(photoUrl) else null
             createHotspotMarkerIcon(bitmap, initial, isTarget, sizePx)
         }
     }
-    
+
     return icon ?: BitmapDescriptorFactory.defaultMarker(if (isTarget) BitmapDescriptorFactory.HUE_AZURE else BitmapDescriptorFactory.HUE_ORANGE)
 }
 
@@ -864,13 +899,13 @@ private fun createHotspotMarkerIcon(
     val height = (sizePx * 1.4f).toInt()
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
-    
+
     val centerX = width / 2f
     val radius = width / 2f
     val centerY = radius
-    
+
     val borderColor = if (isTarget) android.graphics.Color.parseColor("#2196F3") else android.graphics.Color.parseColor("#FF9800")
-    
+
     val path = android.graphics.Path().apply {
         addCircle(centerX, centerY, radius, android.graphics.Path.Direction.CW)
         moveTo(0f, centerY)
@@ -878,16 +913,16 @@ private fun createHotspotMarkerIcon(
         lineTo(width.toFloat(), centerY)
         close()
     }
-    
+
     val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = borderColor
         style = Paint.Style.FILL
     }
     canvas.drawPath(path, borderPaint)
-    
+
     val borderPx = width / 12f
     val innerRadius = radius - borderPx
-    
+
     if (photoBitmap != null) {
         val scaled = Bitmap.createScaledBitmap(photoBitmap, (innerRadius * 2).toInt(), (innerRadius * 2).toInt(), true)
         val shader = BitmapShader(scaled, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
@@ -899,7 +934,7 @@ private fun createHotspotMarkerIcon(
             style = Paint.Style.FILL
         }
         canvas.drawCircle(centerX, centerY, innerRadius, fillPaint)
-        
+
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = borderColor
             textAlign = Paint.Align.CENTER
@@ -909,7 +944,6 @@ private fun createHotspotMarkerIcon(
         val textY = centerY - ((textPaint.descent() + textPaint.ascent()) / 2f)
         canvas.drawText(initial, centerX, textY, textPaint)
     }
-    
+
     return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
-

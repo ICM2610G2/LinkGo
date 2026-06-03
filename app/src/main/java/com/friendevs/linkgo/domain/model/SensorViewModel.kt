@@ -20,6 +20,7 @@ class SensorViewModel(application: Application) : AndroidViewModel(application),
     var shakeDetected by mutableStateOf(false)
     var proximityNear by mutableStateOf(false)
     var headingDeg by mutableStateOf(0f)
+    var isFaceDown by mutableStateOf(false)
 
     private var accel = 0f
     private var accelCurrent = SensorManager.GRAVITY_EARTH
@@ -35,7 +36,8 @@ class SensorViewModel(application: Application) : AndroidViewModel(application),
             Sensor.TYPE_LIGHT,
             Sensor.TYPE_ACCELEROMETER,
             Sensor.TYPE_PROXIMITY,
-            Sensor.TYPE_MAGNETIC_FIELD
+            Sensor.TYPE_MAGNETIC_FIELD,
+            Sensor.TYPE_GYROSCOPE
         )
 
         sensors.forEach { type ->
@@ -89,6 +91,14 @@ class SensorViewModel(application: Application) : AndroidViewModel(application),
                     val azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
                     headingDeg = (azimuth + 360f) % 360f
                 }
+            }
+
+            Sensor.TYPE_GYROSCOPE -> {
+                // El eje Z del giroscopio apunta hacia arriba cuando el telefono esta boca arriba.
+                // Acumulamos la inclinacion sobre el eje X para detectar si esta boca abajo.
+                // Usamos el acelerometro ya filtrado (gravity[]) para determinar orientacion.
+                // gravity[2] < -7 significa que la pantalla mira hacia el suelo (boca abajo).
+                isFaceDown = gravity[2] < -7f
             }
 
         }
