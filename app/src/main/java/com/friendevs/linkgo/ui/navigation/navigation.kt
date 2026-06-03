@@ -1,5 +1,7 @@
 package com.friendevs.linkgo.ui.navigation
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -7,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,6 +46,7 @@ fun Navigation(
     deepLinkGroupId: String? = null,
     onDeepLinkConsumed: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val sheetState = rememberModalBottomSheetState()
     var showSafetySheet by remember { mutableStateOf(false) }
@@ -165,11 +169,31 @@ fun Navigation(
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(
-                            onClick = { showSafetySheet = false },
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_DIAL).apply {
+                                    data = Uri.parse("tel:123")
+                                }
+                                context.startActivity(intent)
+                                showSafetySheet = false
+                            },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
-                            Text("Llamar", color = androidx.compose.ui.graphics.Color.White)
+                            Icon(
+                                imageVector = Icons.Default.Call,
+                                contentDescription = null,
+                                tint = androidx.compose.ui.graphics.Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Llamar al 123", color = androidx.compose.ui.graphics.Color.White)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(
+                            onClick = { showSafetySheet = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Cancelar")
                         }
                     }
                 }
