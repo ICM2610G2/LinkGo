@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 
@@ -101,6 +102,11 @@ fun ChatDetailScreen(
                             clipboardManager.setText(AnnotatedString(inviteCode))
                         }
                     },
+                    onLeaveGroup = {
+                        viewModel.leaveGroup {
+                            navController.popBackStack()
+                        }
+                    },
                     dividerColor = divider
                 )
             },
@@ -167,6 +173,7 @@ private fun ChatDetailTopBar(
     inviteCode: String,
     onBack: () -> Unit,
     onCopyCode: () -> Unit,
+    onLeaveGroup: () -> Unit,
     dividerColor: Color,
 ) {
     // generate a deterministic color from the group name
@@ -246,6 +253,14 @@ private fun ChatDetailTopBar(
                         )
                     }
                 }
+            }
+
+            IconButton(onClick = onLeaveGroup) {
+                Icon(
+                    imageVector = Icons.Filled.ExitToApp,
+                    contentDescription = "Salir del grupo",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
 
 

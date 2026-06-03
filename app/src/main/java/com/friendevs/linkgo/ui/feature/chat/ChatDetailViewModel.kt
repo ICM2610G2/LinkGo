@@ -30,6 +30,8 @@ class ChatDetailViewModel : ViewModel() {
     var userPhotos by mutableStateOf<Map<String, String>>(emptyMap())
         private set
 
+
+
     private var groupId: String = ""
     private var listener: ValueEventListener? = null
     private var groupListener: ValueEventListener? = null
@@ -81,6 +83,18 @@ class ChatDetailViewModel : ViewModel() {
             )
         )
     }
+
+    fun leaveGroup(onSuccess: () -> Unit) {
+        val uid = currentUid ?: return
+        if (groupId.isEmpty()) return
+
+        db.child("groups").child(groupId).child("members").child(uid).removeValue()
+        db.child("users").child(uid).child("groups").child(groupId).removeValue().addOnSuccessListener {
+            onSuccess()
+        }
+    }
+
+
 
     override fun onCleared() {
         super.onCleared()
