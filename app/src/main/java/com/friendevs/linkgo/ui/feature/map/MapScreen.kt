@@ -45,6 +45,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.friendevs.linkgo.domain.model.UserLocation
+import com.friendevs.linkgo.domain.model.Hotspot
 import com.friendevs.linkgo.ui.feature.routes.RouteInfoCard
 import com.friendevs.linkgo.ui.navigation.Screens
 import com.google.android.gms.location.*
@@ -255,8 +256,7 @@ fun MapScreen(
             ) {
                 state.hotspots.forEach { hotspot ->
                     val isMeetupTarget = hotspot.id == state.meetupTargetHotspot?.id
-                    val creator = state.allLocations[hotspot.creatorId]
-                    val icon = rememberHotspotMarkerIcon(creator, isMeetupTarget)
+                    val icon = rememberHotspotMarkerIcon(hotspot, isMeetupTarget)
                     Marker(
                         state = MarkerState(position = LatLng(hotspot.lat, hotspot.lng)),
                         title = if (isMeetupTarget) "\uD83D\uDCCD ${hotspot.name}" else hotspot.name,
@@ -822,9 +822,9 @@ private fun loadBitmapFromUrl(url: String): Bitmap? {
 }
 
 @Composable
-private fun rememberHotspotMarkerIcon(creator: UserLocation?, isTarget: Boolean): BitmapDescriptor {
-    val initial = creator?.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "H"
-    val photoUrl = creator?.profilePhotoUrl ?: ""
+private fun rememberHotspotMarkerIcon(hotspot: Hotspot, isTarget: Boolean): BitmapDescriptor {
+    val initial = hotspot.name.firstOrNull()?.uppercaseChar()?.toString() ?: "H"
+    val photoUrl = hotspot.url
     val density = LocalDensity.current
     
     val sizePx = with(density) { 56.dp.toPx().toInt() }

@@ -70,8 +70,7 @@ fun ChatScreen(
         onGroupClick = { groupId ->
             navController.navigate("${Screens.ChatDetail.name}/$groupId")
         },
-        onFabClick = { showDialog = true },
-        onGroupSelected = model::selectGroup
+        onFabClick = { showDialog = true }
     )
 
     if (showDialog) {
@@ -94,19 +93,8 @@ fun ChatScreen(
 private fun ChatContent(
     state: ChatState,
     onGroupClick: (String) -> Unit,
-    onFabClick: () -> Unit,
-    onGroupSelected: (String?) -> Unit
+    onFabClick: () -> Unit
 ) {
-    var groupsExpanded by remember { mutableStateOf(false) }
-
-    val hasSelectedGroup = state.groups.any { it.id == state.selectedGroupId }
-    val selectedGroupName = state.groups.firstOrNull { it.id == state.selectedGroupId }?.name
-    val visibleGroups = if (hasSelectedGroup) {
-        state.groups.filter { it.id == state.selectedGroupId }
-    } else {
-        state.groups
-    }
-
     Scaffold(
         topBar = { topBarChat() },
         floatingActionButton = {
@@ -123,52 +111,9 @@ private fun ChatContent(
                 .fillMaxSize()
         ) {
 
-            ExposedDropdownMenuBox(
-                expanded = groupsExpanded,
-                onExpandedChange = { groupsExpanded = !groupsExpanded },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                OutlinedTextField(
-                    value = selectedGroupName ?: "Todos los grupos",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Grupo") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = groupsExpanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    singleLine = true
-                )
-
-                ExposedDropdownMenu(
-                    expanded = groupsExpanded,
-                    onDismissRequest = { groupsExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Todos los grupos") },
-                        onClick = {
-                            onGroupSelected(null)
-                            groupsExpanded = false
-                        }
-                    )
-
-                    state.groups.forEach { group ->
-                        DropdownMenuItem(
-                            text = { Text(group.name.ifBlank { "Grupo sin nombre" }) },
-                            onClick = {
-                                onGroupSelected(group.id)
-                                groupsExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            if (visibleGroups.isEmpty()) {
+            if (state.groups.isEmpty()) {
                 Text(
-                    text = if (state.groups.isEmpty()) "Aun no hay grupos" else "No hay coincidencias para el grupo seleccionado",
+                    text = "Aun no hay grupos",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
@@ -177,7 +122,7 @@ private fun ChatContent(
                 modifier = Modifier,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(visibleGroups, key = { it.id }) { group ->
+                items(state.groups, key = { it.id }) { group ->
                     GroupCard(
                         group = group,
                         onClick = { onGroupClick(group.id) }

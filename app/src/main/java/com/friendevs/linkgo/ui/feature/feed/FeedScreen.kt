@@ -131,13 +131,21 @@ fun FeedScreen(
                 .padding(top = paddingValues.calculateTopPadding())
                 .fillMaxSize()
         ) {
-            // Filtros: Todos / Mi circulo
-            Row(
+            // Filtros: Todos / Mis circulos
+            androidx.compose.foundation.lazy.LazyRow(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                FilterChip("Todos", true) { viewModel.setFilter(FeedFilter.ALL) }
-                FilterChip("Mi círculo", false) { viewModel.setFilter(FeedFilter.CIRCLE) }
+                item {
+                    val isAllSelected = state.filter == FeedFilter.ALL
+                    FilterChip("Todos", isAllSelected) { viewModel.setFilter(FeedFilter.ALL) }
+                }
+                items(state.myGroups) { group ->
+                    val isSelected = state.filter == FeedFilter.CIRCLE && state.selectedGroupId == group.id
+                    FilterChip(group.name, isSelected) {
+                        viewModel.selectGroup(group.id)
+                    }
+                }
             }
 
             Box(modifier = Modifier.fillMaxSize()) {
@@ -226,21 +234,17 @@ fun FeedScreen(
 
 @Composable
 private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    var isSelected by remember { mutableStateOf(selected) }
     Text(
         text = label,
         color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier
             .background(
-                color = if (isSelected) MaterialTheme.colorScheme.primary
+                color = if (selected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.surface,
                 shape = CircleShape
             )
             .padding(horizontal = 20.dp, vertical = 8.dp)
-            .clickable {
-                isSelected = true
-                onClick()
-            }
+            .clickable { onClick() }
     )
 }
 

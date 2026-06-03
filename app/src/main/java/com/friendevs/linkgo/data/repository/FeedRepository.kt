@@ -30,6 +30,11 @@ class FeedRepository {
         photoRef.putFile(fileUri).await()
         val imageUrl = photoRef.downloadUrl.await().toString()
 
+        // Guardar tambien como momento en el perfil
+        val momentFileName = "moment_$ts.jpg"
+        val momentRef = storage.child("Post/$uid/$momentFileName")
+        momentRef.putFile(fileUri).await()
+
         // Ubicacion actual desde /locations/{uid} (la publica el mapa).
         val locSnap = db.child("locations").child(uid).get().await()
         val lat = (locSnap.child("lat").value as? Number)?.toDouble() ?: 0.0
@@ -40,6 +45,10 @@ class FeedRepository {
         val authorName = userSnap.child("name").getValue(String::class.java)
             ?: auth.currentUser?.displayName ?: "Usuario"
         val authorPhotoUrl = userSnap.child("profilePhotoUrl").getValue(String::class.java).orEmpty()
+        
+        // Incrementar contador de posts
+        val currentCount = userSnap.child("postsCount").getValue(String::class.java)?.toIntOrNull() ?: 0
+        db.child("users").child(uid).child("postsCount").setValue((currentCount + 1).toString())
 
         val postRef = db.child("feed").push()
         val post = FeedPost(

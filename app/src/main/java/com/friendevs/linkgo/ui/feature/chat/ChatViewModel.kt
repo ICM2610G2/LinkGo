@@ -9,8 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 data class ChatState(
-    val groups: List<GroupSummary> = emptyList(),
-    val selectedGroupId: String? = null
+    val groups: List<GroupSummary> = emptyList()
 )
 
 class ChatViewModel : ViewModel() {
@@ -30,13 +29,8 @@ class ChatViewModel : ViewModel() {
     fun loadUserGroups() {
         val uid = auth.currentUser?.uid ?: return
         groupsListener = repo.observeMyGroups(uid) { groups ->
-            val selected = _state.value.selectedGroupId?.takeIf { id -> groups.any { it.id == id } }
-            _state.value = ChatState(groups = groups, selectedGroupId = selected)
+            _state.value = ChatState(groups = groups)
         }
-    }
-
-    fun selectGroup(groupId: String?) {
-        _state.value = _state.value.copy(selectedGroupId = groupId)
     }
 
     fun createGroup(name: String, descripcion: String) {

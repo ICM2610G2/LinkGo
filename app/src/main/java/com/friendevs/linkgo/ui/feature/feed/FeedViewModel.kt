@@ -19,6 +19,7 @@ data class FeedState(
     val posts: List<FeedPost> = emptyList(),
     val myGroups: List<GroupSummary> = emptyList(),
     val selectedGroupId: String? = null,
+    val filter: FeedFilter = FeedFilter.ALL,
     val hasRevealed: Boolean = false,
     val isUploading: Boolean = false,
     val error: String? = null
@@ -38,7 +39,6 @@ class FeedViewModel : ViewModel() {
 
     private var feedListener: ValueEventListener? = null
     private var allPosts: List<FeedPost> = emptyList()
-    private var filter: FeedFilter = FeedFilter.ALL
 
     init {
         observeFeed()
@@ -64,17 +64,17 @@ class FeedViewModel : ViewModel() {
     }
 
     fun setFilter(newFilter: FeedFilter) {
-        filter = newFilter
+        state = state.copy(filter = newFilter)
         applyFilter()
     }
 
     fun selectGroup(groupId: String) {
-        state = state.copy(selectedGroupId = groupId)
+        state = state.copy(selectedGroupId = groupId, filter = FeedFilter.CIRCLE)
         applyFilter()
     }
 
     private fun applyFilter() {
-        val visible = when (filter) {
+        val visible = when (state.filter) {
             FeedFilter.ALL -> allPosts
             FeedFilter.CIRCLE -> {
                 val gid = state.selectedGroupId

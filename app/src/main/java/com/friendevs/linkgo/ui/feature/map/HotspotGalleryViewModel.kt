@@ -68,6 +68,7 @@ class HotspotGalleryViewModel : ViewModel() {
                 val snap = db.child("hotspots/$hotspotId/fotos").get().await()
                 val current = (snap.value as? Long)?.toInt() ?: 0
                 db.child("hotspots/$hotspotId/fotos").setValue(current + 1)
+                db.child("hotspots/$hotspotId/url").setValue(downloadUrl)
             } catch (e: Exception) {
                 Log.e("HotspotGalleryVM", "Error uploading: ${e.message}")
                 state = state.copy(isUploading = false, error = "Error al subir la foto")

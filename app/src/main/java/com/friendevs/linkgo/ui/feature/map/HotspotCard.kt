@@ -25,28 +25,8 @@ fun HotspotCard(hotspot: Hotspot, onClick: () -> Unit = {}) {
     var firstPhotoUrl by remember { mutableStateOf<String?>(null) }
     var isLoadingPhoto by remember { mutableStateOf(false) }
 
-    LaunchedEffect(hotspot.id) {
-        if (hotspot.fotos > 0) {
-            isLoadingPhoto = true
-            try {
-                val storage = FirebaseStorage.getInstance().reference
-                val items = storage
-                    .child("hotspots/${hotspot.id}")
-                    .listAll()
-                    .await()
-                    .items
-                    .sortedByDescending { it.name }
-
-                if (items.isNotEmpty()) {
-                    val url = items.first().downloadUrl.await().toString()
-                    firstPhotoUrl = url
-                }
-            } catch (e: Exception) {
-                firstPhotoUrl = null
-            } finally {
-                isLoadingPhoto = false
-            }
-        }
+    LaunchedEffect(hotspot.id, hotspot.url) {
+        firstPhotoUrl = hotspot.url.takeIf { it.isNotBlank() }
     }
 
     ElevatedCard(
