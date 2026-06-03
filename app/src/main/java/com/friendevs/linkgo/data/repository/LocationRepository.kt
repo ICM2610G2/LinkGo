@@ -56,6 +56,66 @@ class LocationRepository {
      * Escucha /locations y construye un mapa uid -> UserLocation.
      * El filtrado por grupo se hace en el ViewModel.
      */
+    /**
+     * Publica la ruta recalculada de un miembro en:
+     *   /meetupRoutes/{groupId}/{uid}
+     */
+    fun writeMeetupRoute(
+        groupId: String,
+        uid: String,
+        encodedPoints: List<String>,
+        distanceText: String,
+        durationText: String
+    ) {
+        val payload = mapOf(
+            "points"       to encodedPoints,
+            "distanceText" to distanceText,
+            "durationText" to durationText,
+            "updatedAt"    to System.currentTimeMillis()
+        )
+        db.child("meetupRoutes").child(groupId).child(uid).setValue(payload)
+    }
+
+    /**
+     * Elimina la ruta de un miembro al cancelar el meetup.
+     */
+    fun deleteMeetupRoute(groupId: String, uid: String) {
+        db.child("meetupRoutes").child(groupId).child(uid).removeValue()
+    }
+
+    /**
+     * Escucha /meetupRoutes/{groupId} y devuelve un mapa uid -> (points, distanceText, durationText).
+     * Retorna el listener para poder desregistrarlo.
+     */
+    fun observeMeetupRoutes(
+        groupId: String,
+        onResult: (Map<String, Triple<List<String>, String, String>>) -> Unit
+    ): ValueEventListener {
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val result = mutableMapOf<String, Triple<List<String>, String, String>>()
+                for (child in snapshot.children) {
+                    val uid = child.key ?: continue
+                    @Suppress("UNCHECKED_CAST")
+                    val rawPoints = child.child("points").value as? List<String> ?: continue
+                    val dist = child.child("distanceText").getValue(String::class.java).orEmpty()
+                    val dur  = child.child("durationText").getValue(String::class.java).orEmpty()
+                    result[uid] = Triple(rawPoints, dist, dur)
+                }
+                onResult(result)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("LocationRepository", "observeMeetupRoutes cancelled: ${error.message}")
+            }
+        }
+        db.child("meetupRoutes").child(groupId).addValueEventListener(listener)
+        return listener
+    }
+
+    fun removeMeetupRoutesListener(groupId: String, listener: ValueEventListener) {
+        db.child("meetupRoutes").child(groupId).removeEventListener(listener)
+    }
+
     fun observeAllLocations(onResult: (Map<String, UserLocation>) -> Unit): ValueEventListener {
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
